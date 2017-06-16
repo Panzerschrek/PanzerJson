@@ -56,10 +56,10 @@ struct ObjectValue final : public ValueBase
 
 struct ArrayValue final : public ValueBase
 {
-	const ValueBase* objects;
+	const ValueBase* const* objects;
 	size_t object_count;
 
-	constexpr ArrayValue( const ValueBase* const in_objects, const size_t in_object_count ) noexcept
+	constexpr ArrayValue( const ValueBase* const* const in_objects, const size_t in_object_count ) noexcept
 		: ValueBase(Type::Object)
 		, objects(in_objects)
 		, object_count(in_object_count)
@@ -79,6 +79,36 @@ struct StringValue final : public ValueBase
 		: ValueBase(Type::String)
 		, str( bool_value ? "true" : "false" )
 	{}
+};
+
+// Class for hight-level json access.
+// TODO - maybe addd some constexpr?
+class Value final
+{
+public:
+	Value( const ValueBase* value ) noexcept;
+	~Value();
+
+	ValueBase::Type GetType() const noexcept;
+
+	// Returns element count for object/array types. Returns 0 for others.
+	size_t ElementCount() const noexcept;
+
+	// Returns true if type is object and it have member.
+	bool IsMember( const StringType& key ) const noexcept;
+
+	// Member access for arrays.
+	// Returns NullValue, if value is not array or if index out of bounds.
+	Value operator[]( size_t array_index ) const noexcept;
+
+	// Member access for objects. Returns NullValue, if value does not containt key,
+	Value operator[]( const StringType& key ) const noexcept;
+
+private:
+	const ValueBase* SearchObject( const ObjectValue& object, const StringType& key ) const noexcept;
+
+private:
+	const ValueBase* const value_;
 };
 
 } // namespace PanzerJson
