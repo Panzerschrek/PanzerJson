@@ -24,9 +24,13 @@ static constexpr StringValue strings[]
 	StringValue( "Foo" ), StringValue( "Bar" ), StringValue( "Baz" ),
 };
 
+static constexpr StringValue bool_string_value_false(false);
+static constexpr StringValue bool_string_value_true(true);
+
 static constexpr ArrayValue simple_array_value0( strings, 3u );
 static constexpr ArrayValue simple_array_value1( &simple_object_value0, 1u );
 static constexpr ArrayValue simple_array_value2( &simple_null_value, 1u );
+
 
 }
 

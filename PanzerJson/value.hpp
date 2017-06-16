@@ -74,6 +74,11 @@ struct StringValue final : public ValueBase
 		: ValueBase(Type::String)
 		, str(in_str)
 	{}
+
+	constexpr StringValue( const bool bool_value ) noexcept
+		: ValueBase(Type::String)
+		, str( bool_value ? "true" : "false" )
+	{}
 };
 
 } // namespace PanzerJson
