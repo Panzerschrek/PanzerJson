@@ -3,11 +3,11 @@
     "a_as_str" : "42",
     "B" : -3.14e+0,
     "cwa" : "wtf",
-    "BigArray" :
+    "Big\nArray" :
     [
         1458,
         34,
-        { "boom" : "boom" },
+        { "boom" : "boom", "MaybeNull?" : null },
         false,
         true
     ]

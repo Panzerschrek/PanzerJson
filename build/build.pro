@@ -1,17 +1,20 @@
-TEMPLATE= lib
+TEMPLATE= app
 CONFIG-= qt
 CONFIG+= c++11
 
 INCLUDEPATH += ".."
+INCLUDEPATH += OBJECTS_DIR # For test we need read temporary files, generated from jsons.
 
 # Put path to your python here.
 PYTHON= "C:/Documents And Settings/Panzerschrek/Python/Python.exe"
 
 SOURCES += \
-	../src/value.cpp \
 	../src/constexpr_init_test.cpp \
+	../src/tests_main.cpp \
+	../src/value.cpp \
 
 HEADERS += \
+	../PanzerJson/value.inl \
 	../PanzerJson/value.hpp \
 
 

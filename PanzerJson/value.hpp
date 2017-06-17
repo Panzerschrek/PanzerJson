@@ -63,7 +63,7 @@ struct ArrayValue final : public ValueBase
 	size_t object_count;
 
 	constexpr ArrayValue( const ValueBase* const* const in_objects, const size_t in_object_count ) noexcept
-		: ValueBase(Type::Object)
+		: ValueBase(Type::Array)
 		, objects(in_objects)
 		, object_count(in_object_count)
 	{}
@@ -143,11 +143,22 @@ public:
 	// Returns "true" or "false" for bool values.
 	StringType AsString() const noexcept;
 
+	template<class Stream>
+	void Serialize( Stream& stream );
+
 private:
 	const ValueBase* SearchObject( const ObjectValue& object, const StringType& key ) const noexcept;
+
+	template<class Stream>
+	static void SerializeString( Stream& stream, StringType str );
+
+	template<class Stream>
+	static void Serialize_r( Stream& stream, const ValueBase& value, size_t tab );
 
 private:
 	const ValueBase* const value_;
 };
 
 } // namespace PanzerJson
+
+#include "value.inl"

@@ -26,6 +26,34 @@ def NextCounter():
 def Stringify( something ):
 	return "\"" + str(something) + "\""
 
+#produce valid c++ string literal
+def MakeQuotedEscapedString( s ):
+	result= "\""
+
+	for c in s:
+		if c == '"' :
+			result= result + "\""
+		elif c == '\0':
+			result= result + "\0"
+		elif c == '\\':
+			result= result + "\\\\"
+		elif c == '\b':
+			result= result + "\\b"
+		elif c == '\f':
+			result= result + "\\f"
+		elif c == '\n':
+			result= result + "\\n"
+		elif c == '\r':
+			result= result + "\\r"
+		elif c == '\t':
+			result= result + "\\t"
+		else:
+			result= result + c
+
+	result= result + "\""
+	return result
+
+
 
 # Returns pair of strings.
 # First string - preinitializers, second string - name.
@@ -41,7 +69,7 @@ def WritePanzerJsonValue( json_struct ):
 		for object_key in json_struct :
 			member_value= WritePanzerJsonValue( json_struct[object_key] )
 			result_preinitializer= result_preinitializer + member_value[0]
-			result_object_storage= result_object_storage + "\t{ " + Stringify(object_key) + ", &" + member_value[1] + " },\n"
+			result_object_storage= result_object_storage + "\t{ " + MakeQuotedEscapedString(object_key) + ", &" + member_value[1] + " },\n"
 
 		result_object_storage+= "};\n";
 		return [ result_preinitializer + result_object_storage + result_object, obj_value_name ]
@@ -63,7 +91,7 @@ def WritePanzerJsonValue( json_struct ):
 
 	if type(json_struct) is str:
 		var_name= "string_value" + NextCounter()
-		return [ "constexpr StringValue " + var_name + "(" + Stringify(json_struct) + ");\n\n", var_name ]
+		return [ "constexpr StringValue " + var_name + "(" + MakeQuotedEscapedString(json_struct) + ");\n\n", var_name ]
 
 	if type(json_struct) is int:
 		var_name= "number_value" + NextCounter()
@@ -78,9 +106,8 @@ def WritePanzerJsonValue( json_struct ):
 		return [ "constexpr BoolValue " + var_name + "(" + str(json_struct).lower() + ");\n\n", var_name ]
 
 	if json_struct is None:
-		return [ "", "null" ]
-
-	print( "unknown type: " + str(type(json_struct)) )
+		var_name= "null_value" + NextCounter()
+		return [ "constexpr NullValue " + var_name + ";\n\n", var_name ]
 
 	return [ "", "" ]
 
