@@ -6,6 +6,32 @@
 namespace PanzerJson
 {
 
+// For small powers.
+static int64_t TenPower( const int64_t power )
+{
+	int64_t result= 1;
+	for( int64_t i= 0; i < power; i++ )
+		result*= 10;
+	return result;
+}
+
+// For big powers.
+// Method is faster for big powers - complexity is about O(log2(power)).
+static double TenPowerDouble( const int64_t power )
+{
+	if( power == 0 )
+		return 1.0;
+	if( power == 1 )
+		return 10.0;
+
+	const double half_power= TenPowerDouble( power / 2 );
+	double result= half_power * half_power;
+	if( ( power & 1 ) != 0 )
+		result*= 10.0;
+
+	return result;
+}
+
 Parser::Parser()
 {}
 
@@ -285,32 +311,66 @@ const ValueBase* Parser::Parse_r()
 
 			num_parse_end:
 
-			const auto ten_power=
-			[]( const int64_t power ) -> int64_t
-			{
-				int64_t result= 1;
-				for( int64_t i= 0; i < power; i++ )
-					result*= 10;
-				return result;
-			};
-
 			int64_t result_int_val;
 			double result_double_val;
 			{
-				result_int_val= integer_part * ten_power( exponent );
+				if( exponent >= 0 )
+				{
+					if( exponent >= 17 )
+					{
+						// Hack for very big exponents - try produce result in place.
+						// TODO - prevent overflowing, clamp value.
+						result_int_val= integer_part;
+						for( int64_t i= 0; i < exponent; i++ )
+							result_int_val*= 10;
+					}
+					else
+						result_int_val= integer_part * TenPower( exponent );
 
-				int64_t fractional_part_to_result_int_part= fractional_part;
-				for( int64_t i= 0; i < std::max( 0ll, fractional_part_digits - exponent ); i++ )
-					fractional_part_to_result_int_part/= 10;
+					int64_t fractional_part_to_result_int_part= fractional_part;
+					for( int64_t i= 0; i < std::max( 0ll, exponent - fractional_part_digits ); i++ )
+						fractional_part_to_result_int_part*= 10;
+					for( int64_t i= 0; i < std::max( 0ll, fractional_part_digits - exponent ); i++ )
+						fractional_part_to_result_int_part/= 10;
 
-				result_int_val+= fractional_part_to_result_int_part;
+					result_int_val+= fractional_part_to_result_int_part;
+				}
+				else
+				{
+					if( exponent <= -17 )
+					{
+						// Hack for very big exponents - try produce result in place.
+						// TODO - prevent overflowing, clamp value.
+						for( int64_t i= 0; i < -exponent; i++ )
+							result_int_val/= 10;
+					}
+					else
+						result_int_val= integer_part / TenPower( -exponent );
+				}
 
 				result_int_val*= sign;
 			}
 			{
-				result_double_val= static_cast<double>(integer_part) * static_cast<double>(ten_power( exponent ));
+				// For "small" exponents use integer function (it is more precise).
+				// For "big" exponents use double.
+				if( std::abs( exponent ) >= 17 )
+				{
+					if( exponent >= 0 )
+						result_double_val= static_cast<double>(integer_part) * TenPowerDouble(exponent);
+					else
+						result_double_val= static_cast<double>(integer_part) / TenPowerDouble(-exponent);
+				}
+				else
+				{
+					if( exponent >= 0 )
+						result_double_val= static_cast<double>(integer_part) * static_cast<double>(TenPower(exponent));
+					else
+						result_double_val= static_cast<double>(integer_part) / static_cast<double>(TenPower(-exponent));
+				}
 
 				double fractional_part_power= 1.0;
+				for( int64_t i= 0; i < std::max( 0ll, exponent - fractional_part_digits ); i++ )
+					fractional_part_power*= 10.0;
 				for( int64_t i= 0; i < std::max( 0ll, fractional_part_digits - exponent ); i++ )
 					fractional_part_power/= 10.0;
 
@@ -390,6 +450,11 @@ const ValueBase* Parser::Parse_r()
 			value->value= bool_value;
 
 			return reinterpret_cast<BoolValue*>( static_cast<char*>(nullptr) + offset );
+		}
+		else
+		{
+			result_.error= Result::Error::UnexpectedLexem;
+			return nullptr;
 		}
 		break;
 	};

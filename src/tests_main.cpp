@@ -5,8 +5,12 @@
 #include <PanzerJson/parser.hpp>
 
 
+extern void RunParserTests();
+
 int main()
 {
+	RunParserTests();
+
 	const char json[]=
 	u8R"(
 

@@ -11,6 +11,7 @@ PYTHON= "C:/Documents And Settings/Panzerschrek/Python/Python.exe"
 SOURCES += \
 	../src/constexpr_init_test.cpp \
 	../src/parser.cpp \
+	../src/parser_test.cpp \
 	../src/tests_main.cpp \
 	../src/value.cpp \
 
