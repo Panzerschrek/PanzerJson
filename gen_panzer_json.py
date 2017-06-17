@@ -92,11 +92,13 @@ def WritePanzerJsonCpp( json_struct, h_file_name, variable_name ):
 	result= result + "using namespace PanzerJson;\n\n"
 	result= result + root_value[0]
 	result= result + "} //namespace JsonInitPrivate\n\n"
-	result= result + "const ValueBase& " + variable_name + "= JsonInitPrivate::" + root_value[1] + ";\n"
+	result= result + "const PanzerJson::ValueBase& " + variable_name + "= JsonInitPrivate::" + root_value[1] + ";\n"
 	return result
 
 def WritePanzerJsonHpp( variable_name ):
-	result= "extern const ValueBase& " + variable_name + ";\n"
+	result= "#pragma once\n"
+	result= result + "#include <PanzerJson/value.hpp>\n"
+	result= result + "extern const PanzerJson::ValueBase& " + variable_name + ";\n"
 	return result
 
 def main():
