@@ -10,6 +10,10 @@ def LoadFile( file_name ):
 		file.seek( 0, os.SEEK_SET )
 		return file.read( file_sise )
 
+def WriteFile( file_name, file_content ):
+	with open( file_name, "w" ) as file:
+		file.write( file_content )
+
 def ParseJson( json_content_str ):
 	return json.loads( json_content_str )
 
@@ -25,7 +29,7 @@ def Stringify( something ):
 
 # Returns pair of strings.
 # First string - preinitializers, second string - name.
-def WritePanzerJsonCpp( json_struct ):
+def WritePanzerJsonValue( json_struct ):
 
 	if type(json_struct) is dict:
 		obj_storage_name= "object_storage" + NextCounter()
@@ -35,7 +39,7 @@ def WritePanzerJsonCpp( json_struct ):
 		result_preinitializer= ""
 
 		for object_key in json_struct :
-			member_value= WritePanzerJsonCpp( json_struct[object_key] )
+			member_value= WritePanzerJsonValue( json_struct[object_key] )
 			result_preinitializer= result_preinitializer + member_value[0]
 			result_object_storage= result_object_storage + "\t{ " + Stringify(object_key) + ", &" + member_value[1] + " },\n"
 
@@ -50,7 +54,7 @@ def WritePanzerJsonCpp( json_struct ):
 		result_preinitializer= ""
 
 		for array_member in json_struct :
-			member_value= WritePanzerJsonCpp( array_member )
+			member_value= WritePanzerJsonValue( array_member )
 			result_preinitializer= result_preinitializer + member_value[0]
 			result_array_storage= result_array_storage  + "\t&" + member_value[1] + ",\n"
 
@@ -80,20 +84,41 @@ def WritePanzerJsonCpp( json_struct ):
 
 	return [ "", "" ]
 
+def WritePanzerJsonCpp( json_struct, h_file_name, variable_name ):
+	root_value= WritePanzerJsonValue( json_struct )
+
+	result= "#include \"" + h_file_name + "\"\n\n"
+	result= result + "namespace JsonInitPrivate\n{\n"
+	result= result + "using namespace PanzerJson;\n\n"
+	result= result + root_value[0]
+	result= result + "} //namespace JsonInitPrivate\n\n"
+	result= result + "const ValueBase& " + variable_name + "= JsonInitPrivate::" + root_value[1] + ";\n"
+	return result
+
+def WritePanzerJsonHpp( variable_name ):
+	result= "extern const ValueBase& " + variable_name + ";\n"
+	return result
 
 def main():
 	parser = argparse.ArgumentParser(description='Process some integers.')
 	parser.add_argument( "-i", help= "input json file", type=str )
-	parser.add_argument( "-o", help= "output cpp file", type=str )
+	parser.add_argument( "-o", help= "output cpp/hpp file name base", type=str )
+	parser.add_argument( "-n", help= "name of result variable", type=str )
 
 	args= parser.parse_args()
 
 	print( "Convert \"" + args.i + "\" to \"" + args.o + "\"" )
 
+	cpp_file= args.o + ".cpp"
+	hpp_file= args.o + ".hpp"
+
 	file_content= LoadFile( args.i )
 	json_struct= ParseJson( file_content )
-	result= WritePanzerJsonCpp( json_struct )
-	print( result[0] )
+	cpp_result= WritePanzerJsonCpp( json_struct, hpp_file, args.n )
+	hpp_result= WritePanzerJsonHpp( args.n )
+
+	WriteFile( cpp_file, cpp_result )
+	WriteFile( hpp_file, hpp_result )
 
 if __name__ == "__main__":
 	sys.exit(main())
