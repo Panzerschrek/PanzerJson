@@ -127,6 +127,22 @@ public:
 	// Member access for objects. Returns NullValue, if value does not containt key,
 	Value operator[]( const StringType& key ) const noexcept;
 
+	// Convertions to numbers.
+	// For boolnean values returns "0" or "1".
+	// For string, object, array objects returns "0".
+	double AsDouble() const noexcept;
+	int64_t AsInt64() const noexcept;
+	uint64_t AsUint64() const noexcept;
+	int32_t AsInt() const noexcept;
+	uint32_t AsUint() const noexcept;
+
+	// Returns original string for string values.
+	// Returns empty string for object and array values.
+	// Returns empty string for null values.
+	// Returns string representation for numbers. TODO - does this need?
+	// Returns "true" or "false" for bool values.
+	StringType AsString() const noexcept;
+
 private:
 	const ValueBase* SearchObject( const ObjectValue& object, const StringType& key ) const noexcept;
 

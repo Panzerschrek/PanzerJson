@@ -82,4 +82,58 @@ const ValueBase* Value::SearchObject( const ObjectValue& object, const StringTyp
 	return nullptr;
 }
 
+double Value::AsDouble() const noexcept
+{
+	if( value_->type == ValueBase::Type::Number )
+		return static_cast<const NumberValue&>(*value_).double_value;
+	if( value_->type == ValueBase::Type::Bool )
+		return static_cast<const BoolValue&>(*value_).value ? 1.0 : 0.0;
+	return 0.0;
+}
+
+int64_t Value::AsInt64() const noexcept
+{
+	if( value_->type == ValueBase::Type::Number )
+		return static_cast<const NumberValue&>(*value_).int_value;
+	if( value_->type == ValueBase::Type::Bool )
+		return static_cast<const BoolValue&>(*value_).value ? 1 : 0;
+	return 0;
+}
+
+uint64_t Value::AsUint64() const noexcept
+{
+	return static_cast<uint64_t>(AsInt64());
+}
+
+int32_t Value::AsInt() const noexcept
+{
+	return static_cast<int32_t>(AsInt64());
+}
+
+uint32_t Value::AsUint() const noexcept
+{
+	return static_cast<uint32_t>(AsInt64());
+}
+
+StringType Value::AsString() const noexcept
+{
+	switch(value_->type)
+	{
+	case ValueBase::Type::Null:
+		return "";
+	case ValueBase::Type::Object:
+	case ValueBase::Type::Array:
+		return "";
+	case ValueBase::Type::String:
+		return static_cast<const StringValue&>(*value_).str;
+	case ValueBase::Type::Number:
+		return static_cast<const NumberValue&>(*value_).str;
+	case ValueBase::Type::Bool:
+		return static_cast<const BoolValue&>(*value_).value ? "true" : "false";
+	};
+
+	// TODO - assert here.
+	return "";
+}
+
 } // namespace PanzerJson
