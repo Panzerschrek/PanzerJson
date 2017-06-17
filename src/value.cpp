@@ -74,11 +74,38 @@ Value Value::operator[]( const StringType& key ) const noexcept
 
 const ValueBase* Value::SearchObject( const ObjectValue& object, const StringType& key ) const noexcept
 {
-	// TODO - make binary search.
+	/*
 	for( size_t i= 0u; i < object.object_count; i++ )
 	{
 		if( StringCompare( key, object.sub_objects[i].key ) == 0 )
 			return object.sub_objects[i].value;
+	}*/
+
+	// Make binary search here.
+	// WARNING! Keys must be sorted. Python script or parser must sort keys.
+	const ObjectValue::ObjectEntry* start= object.sub_objects;
+	const ObjectValue::ObjectEntry* end= object.sub_objects + object.object_count;
+	if( start == end )
+		return nullptr;
+
+	if( StringCompare( key, start->key ) < 0 )
+		return nullptr;
+	if( StringCompare( key, (end-1u)->key ) > 0 )
+		return nullptr;
+
+	while(true)
+	{
+		if( start == end )
+			return nullptr;
+
+		const ObjectValue::ObjectEntry* const middle= start + size_t( end - start ) / 2u;
+		const int comp= StringCompare( key, middle->key );
+		if( comp < 0 )
+			end= middle;
+		else if( comp > 0 )
+			start= middle + 1u;
+		else
+			return middle->value;
 	}
 
 	return nullptr;

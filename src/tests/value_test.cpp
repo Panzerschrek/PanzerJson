@@ -64,9 +64,9 @@ static void SimpleObjectValueTest()
 	static constexpr NumberValue number_value( "1458.4", 1458, 1458.4 );
 	static constexpr ObjectValue::ObjectEntry objects[3u]
 	{
-		{ "foo", &bool_value },
-		{ u8"Zwölf", &string_value },
-		{ u8"1\n1", &number_value },
+		{ "1foo", &bool_value },
+		{ u8"2Zwölf", &string_value },
+		{ u8"3\n1", &number_value },
 	};
 	static constexpr ObjectValue object_value( objects, 3u );
 	Value value(&object_value);
@@ -75,12 +75,12 @@ static void SimpleObjectValueTest()
 	test_assert( value.ElementCount() == 3u );
 	test_assert( value.AsInt() == 0 );
 	test_assert( value.AsDouble() == 0.0 );
-	test_assert( value.IsMember( "foo" ) );
-	test_assert( value[ "foo" ].AsInt() == 1 );
-	test_assert( value.IsMember( u8"Zwölf" ) );
-	test_assert( std::strcmp( value[ u8"Zwölf" ].AsString(), "a" ) == 0 );
-	test_assert( value.IsMember( "1\n1" ) );
-	test_assert( value[ "1\n1" ].AsDouble() == 1458.4 );
+	test_assert( value.IsMember( "1foo" ) );
+	test_assert( value[ "1foo" ].AsInt() == 1 );
+	test_assert( value.IsMember( u8"2Zwölf" ) );
+	test_assert( std::strcmp( value[ u8"2Zwölf" ].AsString(), "a" ) == 0 );
+	test_assert( value.IsMember( "3\n1" ) );
+	test_assert( value[ "3\n1" ].AsDouble() == 1458.4 );
 
 	// Out of bounds test.
 	test_assert( !value.IsMember( "unexistent" ) );
@@ -113,6 +113,50 @@ static void SimpleArrayValueTest()
 	test_assert( value[457u].GetType() == ValueBase::Type::Null );
 }
 
+static void ObjectValueSearchTest()
+{
+	static constexpr BoolValue bool_value0( true );
+	static constexpr StringValue string_value0( "a" );
+	static constexpr NumberValue number_value0( "1458.4", 1458, 1458.4 );
+	static constexpr BoolValue bool_value1( false );
+	static constexpr StringValue string_value1( "wtf" );
+	static constexpr NumberValue number_value1( "-25", -25, -25.0);
+	static constexpr const ValueBase* array_objects[3]
+	{
+		&bool_value0 ,
+		&string_value1,
+		&number_value1,
+	};
+	static constexpr ArrayValue array_value( array_objects, 3u );
+	static constexpr ObjectValue::ObjectEntry objects[7u]
+	{
+		{ "apple", &bool_value0 },
+		{ "beer", &string_value0 },
+		{ "candy", &number_value0 },
+		{ "death", &bool_value1 },
+		{ "element", &string_value1 },
+		{ "fruit", &number_value1 },
+		{ "g not gay", &array_value },
+	};
+	static constexpr ObjectValue object_value( objects, 7u );
+	Value value(&object_value);
+
+	test_assert( value["apple"].IsBool() && value["apple"].AsInt() == 1 );
+	test_assert( value["beer"].IsString() && std::strcmp( value["beer"].AsString(), "a" ) == 0 );
+	test_assert( value["candy"].IsNumber() && value["candy"].AsDouble() == 1458.4 );
+	test_assert( value["death"].IsBool() && value["death"].AsInt() == false );
+	test_assert( value["element"].IsString() && std::strcmp( value["element"].AsString(), "wtf" ) == 0 );
+	test_assert( value["fruit"].IsNumber() && value["fruit"].AsInt() == -25 );
+	test_assert( value["g not gay"].IsArray() && value["g not gay"].ElementCount() == 3u );
+
+	// Out of bounds test.
+	test_assert( !value.IsMember( "aaa" ) );
+	test_assert( !value.IsMember( "zzz" ) );
+
+	// Nonexistent key test
+	test_assert( !value.IsMember( "BIG" ) );
+}
+
 void RunValueTests()
 {
 	SimpleNullValueTest();
@@ -122,4 +166,5 @@ void RunValueTests()
 	SimpleBoolValueTest1();
 	SimpleObjectValueTest();
 	SimpleArrayValueTest();
+	ObjectValueSearchTest();
 }
