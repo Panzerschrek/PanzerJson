@@ -12,6 +12,9 @@ static const Value g_null_value( & g_null_value_content );
 int StringCompare( const StringType& l, const StringType& r )
 {
 	// Change this if string type changed.
+
+	// Currently, we have UTF-8 encoding.
+	// For UTF-8 comparison result is equal to comparison result for UTF-32.
 	return std::strcmp( l, r );
 }
 

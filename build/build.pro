@@ -35,3 +35,4 @@ JSON_TESTS+= \
 	../test_jsons/complex_object.json \
 	../test_jsons/simple_object.json \
 	../test_jsons/sort_test.json \
+	../test_jsons/utf8_test.json \

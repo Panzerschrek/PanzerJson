@@ -4,6 +4,9 @@
 namespace PanzerJson
 {
 
+// String type is null-terminated UTF-8.
+// TODO - maybe add support for width encodings?
+// TODO - maybe support string views?
 using StringType= const char*;
 int StringCompare( const StringType& l, const StringType& r );
 

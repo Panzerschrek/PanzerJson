@@ -4,14 +4,14 @@ import os
 import sys
 
 def LoadFile( file_name ):
-	with open( file_name ) as file:
+	with open( file_name, "r", encoding='utf-8' ) as file:
 		file.seek( 0, os.SEEK_END )
 		file_sise= file.tell()
 		file.seek( 0, os.SEEK_SET )
 		return file.read( file_sise )
 
 def WriteFile( file_name, file_content ):
-	with open( file_name, "w" ) as file:
+	with open( file_name, "w", encoding='utf-8' ) as file:
 		file.write( file_content )
 
 def ParseJson( json_content_str ):
@@ -28,7 +28,7 @@ def Stringify( something ):
 
 #produce valid c++ string literal
 def MakeQuotedEscapedString( s ):
-	result= "\""
+	result= "u8\""
 
 	for c in s:
 		if c == '"' :
