@@ -341,6 +341,7 @@ const ValueBase* Parser::Parse_r()
 					{
 						// Hack for very big exponents - try produce result in place.
 						// TODO - prevent overflowing, clamp value.
+						result_int_val= integer_part;
 						for( int64_t i= 0; i < -exponent; i++ )
 							result_int_val/= 10;
 					}
