@@ -17,16 +17,25 @@ const ValueBase* Parser::Parse_r()
 	SkipWhitespaces();
 	if( result_.error != Result::Error::NoError )
 		return nullptr;
+	if( cur_ == end_ )
+	{
+		result_.error= Result::Error::UnexpectedEndOfFile;
+		return nullptr;
+	}
 
-	const char c= *cur_;
-	++cur_;
-
-	switch(c)
+	switch(*cur_)
 	{
 
 	// Object
 	case '{':
 	{
+		++cur_;
+		if( cur_ == end_ )
+		{
+			result_.error= Result::Error::UnexpectedEndOfFile;
+			return nullptr;
+		}
+
 		std::vector<ObjectValue::ObjectEntry> entries;
 
 		while(true)
@@ -34,6 +43,11 @@ const ValueBase* Parser::Parse_r()
 			SkipWhitespaces();
 			if( result_.error != Result::Error::NoError )
 				return nullptr;
+			if( cur_ == end_ )
+			{
+				result_.error= Result::Error::UnexpectedEndOfFile;
+				return nullptr;
+			}
 			if( *cur_ == '"' )
 			{
 				const StringType key= ParseString();
@@ -43,6 +57,11 @@ const ValueBase* Parser::Parse_r()
 				SkipWhitespaces();
 				if( result_.error != Result::Error::NoError )
 					return nullptr;
+				if( cur_ == end_ )
+				{
+					result_.error= Result::Error::UnexpectedEndOfFile;
+					return nullptr;
+				}
 				if( *cur_ != ':' )
 				{
 					result_.error= Result::Error::UnexpectedLexem;
@@ -59,6 +78,11 @@ const ValueBase* Parser::Parse_r()
 				SkipWhitespaces();
 				if( result_.error != Result::Error::NoError )
 					return nullptr;
+				if( cur_ == end_ )
+				{
+					result_.error= Result::Error::UnexpectedEndOfFile;
+					return nullptr;
+				}
 				if( *cur_ == ',' )
 				{
 					++cur_;
@@ -79,13 +103,13 @@ const ValueBase* Parser::Parse_r()
 		// TODO - sort object members.
 
 		const size_t entries_offset= result_.storage.size();
-		result_.storage.resize( sizeof(ObjectValue::ObjectEntry) * entries.size() );
+		result_.storage.resize( result_.storage.size() + sizeof(ObjectValue::ObjectEntry) * entries.size() );
 		ObjectValue::ObjectEntry* const result_entries=
 			reinterpret_cast<ObjectValue::ObjectEntry*>( result_.storage.data() + entries_offset );
 		std::memcpy( result_entries, entries.data(), sizeof(ObjectValue::ObjectEntry) * entries.size() );
 
 		const size_t object_offset= result_.storage.size();
-		result_.storage.resize( sizeof(ObjectValue) );
+		result_.storage.resize( result_.storage.size() + sizeof(ObjectValue) );
 		ObjectValue* const object_value= reinterpret_cast<ObjectValue*>( result_.storage.data() + object_offset );
 
 		object_value->type= ValueBase::Type::Object;
@@ -99,6 +123,13 @@ const ValueBase* Parser::Parse_r()
 	// Array
 	case '[':
 	{
+		++cur_;
+		if( cur_ == end_ )
+		{
+			result_.error= Result::Error::UnexpectedEndOfFile;
+			return nullptr;
+		}
+
 		std::vector<const ValueBase*> values;
 
 		while(true)
@@ -106,10 +137,15 @@ const ValueBase* Parser::Parse_r()
 			SkipWhitespaces();
 			if( result_.error != Result::Error::NoError )
 				return nullptr;
+			if( cur_ == end_ )
+			{
+				result_.error= Result::Error::UnexpectedEndOfFile;
+				return nullptr;
+			}
 			if( *cur_ == ']' )
 			{
 				++cur_;
-				continue;
+				break;
 			}
 			else
 			{
@@ -122,6 +158,11 @@ const ValueBase* Parser::Parse_r()
 				SkipWhitespaces();
 				if( result_.error != Result::Error::NoError )
 					return nullptr;
+				if( cur_ == end_ )
+				{
+					result_.error= Result::Error::UnexpectedEndOfFile;
+					return nullptr;
+				}
 				if( *cur_ == ',' )
 				{
 					++cur_;
@@ -131,13 +172,13 @@ const ValueBase* Parser::Parse_r()
 		} // while true
 
 		const size_t values_offset= result_.storage.size();
-		result_.storage.resize( sizeof(const ValueBase*) * values.size() );
+		result_.storage.resize( result_.storage.size() + sizeof(const ValueBase*) * values.size() );
 		const ValueBase* * const array_values=
 			reinterpret_cast<const ObjectValue::ValueBase**>( result_.storage.data() + values_offset );
 		std::memcpy( array_values, values.data(), sizeof(const ValueBase*) * values.size() );
 
 		const size_t array_offset= result_.storage.size();
-		result_.storage.resize( sizeof(ArrayValue) );
+		result_.storage.resize( result_.storage.size() + sizeof(ArrayValue) );
 		ArrayValue* const array_value= reinterpret_cast<ArrayValue*>( result_.storage.data() + array_offset );
 
 		array_value->type= ValueBase::Type::Array;
@@ -156,7 +197,7 @@ const ValueBase* Parser::Parse_r()
 				return nullptr;
 
 			const size_t offset= result_.storage.size();
-			result_.storage.resize( sizeof(StringValue) );
+			result_.storage.resize( result_.storage.size() + sizeof(StringValue) );
 			StringValue* const string_value=
 				reinterpret_cast<StringValue*>( result_.storage.data() + offset );
 
@@ -169,10 +210,8 @@ const ValueBase* Parser::Parse_r()
 		break;
 
 	default:
-		// Positive number
-
-
-		if( ( c >= '0' && c <= '9' ) || c == '-' )
+		// Numbers.
+		if( ( *cur_ >= '0' && *cur_ <= '9' ) || *cur_ == '-' )
 		{
 			int64_t integer_part= 0;
 			int64_t exponent= 0;
@@ -195,10 +234,11 @@ const ValueBase* Parser::Parse_r()
 					else
 						break;
 				}
+				return result;
 			};
 
 			const char* const num_start= cur_;
-			if( c == '-' )
+			if( *cur_ == '-' )
 			{
 				++cur_;
 				if( cur_ == end_ )
@@ -307,13 +347,13 @@ const ValueBase* Parser::Parse_r()
 			// Allocate string value.
 			const size_t str_size= cur_ - num_start;
 			const size_t str_offset= result_.storage.size();
-			result_.storage.resize( str_size + 1u );
+			result_.storage.resize( result_.storage.size() + str_size + 1u );
 			std::memcpy( result_.storage.data() + str_offset, num_start, str_size );
 			result_.storage[ str_offset + str_size ]= '\0';
 
 			// Allocate number value.
 			const size_t offset= result_.storage.size();
-			result_.storage.resize( sizeof(NumberValue) );
+			result_.storage.resize(  result_.storage.size() + sizeof(NumberValue) );
 			NumberValue* const value= reinterpret_cast<NumberValue*>( result_.storage.data() + offset );
 
 			// Fill data.
@@ -325,11 +365,11 @@ const ValueBase* Parser::Parse_r()
 			return reinterpret_cast<NumberValue*>( static_cast<char*>(nullptr) + offset );
 		}
 		// Null
-		else if( c == 'n' )
+		else if( *cur_ == 'n' )
 		{
 		}
 		// True
-		else if( c == 't' || c == 'f' )
+		else if( *cur_ == 't' || *cur_ == 'f' )
 		{
 		}
 		break;
@@ -349,7 +389,7 @@ StringType Parser::ParseString()
 
 	const size_t offset= result_.storage.size();
 
-	while(1)
+	while(true)
 	{
 		if( cur_ == end_ )
 		{
@@ -359,11 +399,13 @@ StringType Parser::ParseString()
 
 		if( *cur_ == '"' )
 		{
+			++cur_;
 			result_.storage.push_back('\0');
 			return static_cast<StringType>(nullptr) + offset;
 		}
 		else if( *cur_ == '\\' )
 		{
+			// TODO
 		}
 		else
 		{
@@ -385,6 +427,7 @@ void Parser::SkipWhitespaces()
 
 void Parser::CorrectPointers_r( ValueBase& value )
 {
+
 	switch( value.type )
 	{
 	case ValueBase::Type::Null:
@@ -461,11 +504,16 @@ Parser::Result Parser::Parse( const char* const json_text, const size_t json_tex
 {
 	start_= json_text;
 	end_= json_text + json_text_length;
+	cur_= start_;
 
 	result_.error= Result::Error::NoError;
 	result_.storage.clear();
 
-	const ValueBase* const root= Parse_r();
+	const ValueBase* root= Parse_r();
+	const size_t offset=
+		reinterpret_cast<const unsigned char*>(root) - static_cast<const unsigned char*>(nullptr);
+	root= reinterpret_cast<const ValueBase*>( offset + result_.storage.data() );
+
 	CorrectPointers_r( const_cast<ValueBase&>(*root) );
 	result_.root= Value( root );
 
