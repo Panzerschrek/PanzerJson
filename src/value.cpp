@@ -15,6 +15,10 @@ int StringCompare( const StringType& l, const StringType& r )
 	return std::strcmp( l, r );
 }
 
+Value::Value() noexcept
+	: value_( &g_null_value_content )
+{}
+
 Value::Value( const ValueBase* const value ) noexcept
 	: value_(value)
 {
