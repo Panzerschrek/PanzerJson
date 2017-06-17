@@ -11,7 +11,7 @@ struct NullValue;
 struct ObjectValue;
 struct ArrayValue;
 struct StringValue;
-struct NumberType;
+struct NumberValue;
 
 struct ValueBase
 {
@@ -24,7 +24,7 @@ struct ValueBase
 		Number,
 		Bool,
 	};
-	const Type type;
+	Type type;
 
 	constexpr ValueBase( const Type& in_type ) noexcept
 		: type(in_type)
@@ -109,6 +109,7 @@ struct BoolValue final : public ValueBase
 class Value final
 {
 public:
+	Value() noexcept;
 	Value( const ValueBase* value ) noexcept;
 	~Value();
 
@@ -156,7 +157,7 @@ private:
 	static void Serialize_r( Stream& stream, const ValueBase& value, size_t tab );
 
 private:
-	const ValueBase* const value_;
+	const ValueBase* value_;
 };
 
 } // namespace PanzerJson

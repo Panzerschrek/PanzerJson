@@ -5,6 +5,7 @@
     "cwa" : "wtf",
     "Big\nArray" :
     [
+        "\"UberQuoted\"",
         1458,
         34,
         { "boom" : "boom", "MaybeNull?" : null },

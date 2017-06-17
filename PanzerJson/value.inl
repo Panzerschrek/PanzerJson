@@ -17,7 +17,7 @@ void Value::SerializeString( Stream& stream, StringType str )
 	while( *s != '\0' )
 	{
 		if( *s == '"' )
-			stream << "\"";
+			stream << "\\\"";
 		else if( *s == '\\' )
 			stream << "\\\\";
 		else if( *s == '/' )

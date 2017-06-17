@@ -10,10 +10,12 @@ PYTHON= "C:/Documents And Settings/Panzerschrek/Python/Python.exe"
 
 SOURCES += \
 	../src/constexpr_init_test.cpp \
+	../src/parser.cpp \
 	../src/tests_main.cpp \
 	../src/value.cpp \
 
 HEADERS += \
+	../PanzerJson/parser.hpp \
 	../PanzerJson/value.inl \
 	../PanzerJson/value.hpp \
 
@@ -23,8 +25,8 @@ HEADERS += \
 
 CONVERT_SCRIPT= "../gen_panzer_json.py"
 BuildConvertedJson.output= gen_${QMAKE_FILE_BASE}.o
-BuildConvertedJson.depend_command = $$PYTHON $$CONVERT_SCRIPT -i ${QMAKE_FILE_NAME} -o gen_${QMAKE_FILE_BASE} -n ${QMAKE_FILE_BASE}
-BuildConvertedJson.commands= g++ -I".." -std=c++11 -c gen_${QMAKE_FILE_BASE}.cpp -o gen_${QMAKE_FILE_BASE}.o
+BuildConvertedJson.commands= $$PYTHON $$CONVERT_SCRIPT -i ${QMAKE_FILE_NAME} -o gen_${QMAKE_FILE_BASE} -n ${QMAKE_FILE_BASE};
+BuildConvertedJson.commands+= g++ -I".." -std=c++11 -c gen_${QMAKE_FILE_BASE}.cpp -o gen_${QMAKE_FILE_BASE}.o
 BuildConvertedJson.input= JSON_TESTS
 
 QMAKE_EXTRA_COMPILERS+= BuildConvertedJson
@@ -32,3 +34,4 @@ QMAKE_EXTRA_COMPILERS+= BuildConvertedJson
 JSON_TESTS+= \
 	../test_jsons/complex_object.json \
 	../test_jsons/simple_object.json \
+	../test_jsons/sort_test.json \
