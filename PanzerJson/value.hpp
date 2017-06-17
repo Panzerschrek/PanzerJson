@@ -15,6 +15,7 @@ struct ObjectValue;
 struct ArrayValue;
 struct StringValue;
 struct NumberValue;
+struct BoolValue;
 
 struct ValueBase
 {
@@ -116,7 +117,14 @@ public:
 	Value( const ValueBase* value ) noexcept;
 	~Value();
 
+	// Type access.
 	ValueBase::Type GetType() const noexcept;
+	bool IsNull() const noexcept;
+	bool IsObject() const noexcept;
+	bool IsArray() const noexcept;
+	bool IsString() const noexcept;
+	bool IsNumber() const noexcept;
+	bool IsBool() const noexcept;
 
 	// Returns element count for object/array types. Returns 0 for others.
 	size_t ElementCount() const noexcept;

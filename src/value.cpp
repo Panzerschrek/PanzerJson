@@ -31,11 +31,6 @@ Value::Value( const ValueBase* const value ) noexcept
 Value::~Value()
 {}
 
-ValueBase::Type Value::GetType() const noexcept
-{
-	return value_->type;
-}
-
 size_t Value::ElementCount() const noexcept
 {
 	if( value_->type == ValueBase::Type::Object )

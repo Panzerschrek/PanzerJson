@@ -3,6 +3,42 @@
 namespace PanzerJson
 {
 
+// Add some inline methods for builds without link-time optimization.
+
+inline ValueBase::Type Value::GetType() const noexcept
+{
+	return value_->type;
+}
+
+inline bool Value::IsNull() const noexcept
+{
+	return GetType() == ValueBase::Type::Null;
+}
+
+inline bool Value::IsObject() const noexcept
+{
+	return GetType() == ValueBase::Type::Object;
+}
+
+inline bool Value::IsArray() const noexcept
+{
+	return GetType() == ValueBase::Type::Array;
+}
+
+inline bool Value::IsString() const noexcept
+{
+	return GetType() == ValueBase::Type::String;
+}
+
+inline bool Value::IsNumber() const noexcept
+{
+	return GetType() == ValueBase::Type::Number;
+}
+
+inline bool Value::IsBool() const noexcept
+{
+	return GetType() == ValueBase::Type::Bool;
+}
 
 template<class Stream>
 void Value::SerializeString( Stream& stream, StringType str )
