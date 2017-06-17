@@ -11,7 +11,7 @@ struct NullValue;
 struct ObjectValue;
 struct ArrayValue;
 struct StringValue;
-struct NumberType;
+struct NumberValue;
 
 struct ValueBase
 {

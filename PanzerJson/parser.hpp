@@ -37,6 +37,7 @@ private:
 	void SkipWhitespaces();
 
 	void CorrectPointers_r( ValueBase& value );
+	StringType CorrectStringPointer( StringType str );
 
 private:
 	const char* start_;

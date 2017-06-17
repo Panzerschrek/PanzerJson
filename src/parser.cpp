@@ -169,20 +169,167 @@ const ValueBase* Parser::Parse_r()
 		break;
 
 	default:
-		// Number
-		if( c >= '0' && c <= '9' )
+		// Positive number
+
+
+		if( ( c >= '0' && c <= '9' ) || c == '-' )
 		{
+			int64_t integer_part= 0;
+			int64_t exponent= 0;
+			int64_t fractional_part= 0;
+			size_t fractional_part_digits= 0;
+			int64_t sign= 1;
+			int64_t exponent_sign= 1;
+
+			const auto parse_decimal=
+			[&]() -> int64_t
+			{
+				int64_t result= 0;
+				while( cur_ < end_ )
+				{
+					if( *cur_ >= '0' && *cur_ <= '9' )
+					{
+						result= result * 10 + int64_t( *cur_ - '0' );
+						++cur_;
+					}
+					else
+						break;
+				}
+			};
+
+			const char* const num_start= cur_;
+			if( c == '-' )
+			{
+				++cur_;
+				if( cur_ == end_ )
+				{
+					result_.error= Result::Error::UnexpectedEndOfFile;
+					return nullptr;
+				}
+				if( !( *cur_ >= '0' && *cur_ <= '9' ) )
+				{
+					result_.error= Result::Error::UnexpectedLexem;
+					return nullptr;
+				}
+
+				sign= -1;
+			}
+
+			integer_part= parse_decimal();
+
+			if( cur_ == end_ )
+				goto num_parse_end;
+			if( *cur_ == '.' )
+			{
+				++cur_;
+				if( cur_ == end_ )
+				{
+					result_.error= Result::Error::UnexpectedEndOfFile;
+					return nullptr;
+				}
+				if( !( *cur_ >= '0' && *cur_ <= '9' ) )
+				{
+					result_.error= Result::Error::UnexpectedLexem;
+					return nullptr;
+				}
+
+				const char* const fractional_start_digit= cur_;
+				fractional_part= parse_decimal();
+				fractional_part_digits= cur_ - fractional_start_digit;
+			}
+			if( cur_ == end_ )
+				goto num_parse_end;
+			if( *cur_ == 'e' || *cur_ == 'E' )
+			{
+				++cur_;
+				if( cur_ == end_ )
+				{
+					result_.error= Result::Error::UnexpectedEndOfFile;
+					return nullptr;
+				}
+
+				if( *cur_ == '+' || *cur_ == '-' )
+				{
+					if( *cur_ == '-' ) exponent_sign= -1;
+					++cur_;
+				}
+
+				if( cur_ == end_ )
+				{
+					result_.error= Result::Error::UnexpectedEndOfFile;
+					return nullptr;
+				}
+				if( !( *cur_ >= '0' && *cur_ <= '9' ) )
+				{
+					result_.error= Result::Error::UnexpectedLexem;
+					return nullptr;
+				}
+
+				exponent= parse_decimal() * exponent_sign;
+			}
+
+			num_parse_end:
+
+			const auto ten_power=
+			[]( const int64_t power ) -> int64_t
+			{
+				int64_t result= 1;
+				for( int64_t i= 0; i < power; i++ )
+					result*= 10;
+				return result;
+			};
+
+			int64_t result_int_val;
+			double result_double_val;
+			{
+				result_int_val= integer_part * ten_power( exponent );
+
+				int64_t fractional_part_to_result_int_part= fractional_part;
+				for( int64_t i= 0; i < std::max( 0ll, fractional_part_digits - exponent ); i++ )
+					fractional_part_to_result_int_part/= 10;
+
+				result_int_val+= fractional_part_to_result_int_part;
+
+				result_int_val*= sign;
+			}
+			{
+				result_double_val= static_cast<double>(integer_part) * static_cast<double>(ten_power( exponent ));
+
+				double fractional_part_power= 1.0;
+				for( int64_t i= 0; i < std::max( 0ll, fractional_part_digits - exponent ); i++ )
+					fractional_part_power/= 10.0;
+
+				result_double_val+= fractional_part_power * static_cast<double>(fractional_part);
+
+				result_double_val*= static_cast<double>(sign);
+			}
+
+			// Allocate string value.
+			const size_t str_size= cur_ - num_start;
+			const size_t str_offset= result_.storage.size();
+			result_.storage.resize( str_size + 1u );
+			std::memcpy( result_.storage.data() + str_offset, num_start, str_size );
+			result_.storage[ str_offset + str_size ]= '\0';
+
+			// Allocate number value.
+			const size_t offset= result_.storage.size();
+			result_.storage.resize( sizeof(NumberValue) );
+			NumberValue* const value= reinterpret_cast<NumberValue*>( result_.storage.data() + offset );
+
+			// Fill data.
+			value->type= ValueBase::Type::Number;
+			value->str= str_offset + static_cast<const char*>(nullptr);
+			value->int_value= result_int_val;
+			value->double_value= result_double_val;
+
+			return reinterpret_cast<NumberValue*>( static_cast<char*>(nullptr) + offset );
 		}
 		// Null
 		else if( c == 'n' )
 		{
 		}
 		// True
-		else if( c == 't' )
-		{
-		}
-		// False
-		else if( c == 'f' )
+		else if( c == 't' || c == 'f' )
 		{
 		}
 		break;
@@ -251,9 +398,16 @@ void Parser::CorrectPointers_r( ValueBase& value )
 				reinterpret_cast<const unsigned char*>(object_value.sub_objects) - static_cast<const unsigned char*>(nullptr);
 			object_value.sub_objects= reinterpret_cast<const ObjectValue::ObjectEntry*>( entries_offset + result_.storage.data() );
 
-			for( size_t i= 0u; i < object_value.sub_objects; i++ )
+			for( size_t i= 0u; i < object_value.object_count; i++ )
 			{
+				ObjectValue::ObjectEntry& entry= const_cast<ObjectValue::ObjectEntry&>(object_value.sub_objects[i]);
+				entry.key= CorrectStringPointer( entry.key );
 
+				const size_t offset=
+					reinterpret_cast<const unsigned char*>(entry.value) - static_cast<const unsigned char*>(nullptr);
+				entry.value= reinterpret_cast<const ValueBase*>( offset + result_.storage.data() );
+
+				CorrectPointers_r( const_cast<ValueBase&>(*entry.value) );
 			}
 		}
 		return;
@@ -280,14 +434,14 @@ void Parser::CorrectPointers_r( ValueBase& value )
 	case ValueBase::Type::String:
 		{
 			StringValue& string_value= static_cast<StringValue&>(value);
-			const size_t offset=
-				reinterpret_cast<const unsigned char*>(string_value.str) - static_cast<const unsigned char*>(nullptr);
-			string_value.str= reinterpret_cast<const char*>( offset + result_.storage.data() );
+			string_value.str= CorrectStringPointer( string_value.str );
 		}
 		break;
 
 	case ValueBase::Type::Number:
 		{
+			NumberValue& number_value= static_cast<NumberValue&>(value);
+			number_value.str= CorrectStringPointer( number_value.str );
 		}
 		break;
 
@@ -296,18 +450,26 @@ void Parser::CorrectPointers_r( ValueBase& value )
 	};
 }
 
+StringType Parser::CorrectStringPointer( const StringType str )
+{
+	const size_t offset=
+		reinterpret_cast<const unsigned char*>(str) - static_cast<const unsigned char*>(nullptr);
+	return reinterpret_cast<const char*>( offset + result_.storage.data() );
+}
+
 Parser::Result Parser::Parse( const char* const json_text, const size_t json_text_length )
 {
 	start_= json_text;
 	end_= json_text + json_text_length;
 
 	result_.error= Result::Error::NoError;
+	result_.storage.clear();
 
 	const ValueBase* const root= Parse_r();
 	CorrectPointers_r( const_cast<ValueBase&>(*root) );
 	result_.root= Value( root );
 
-	return result_;
+	return std::move(result_);
 }
 
 } // namespace PanzerJson
