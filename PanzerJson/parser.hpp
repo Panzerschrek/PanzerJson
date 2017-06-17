@@ -21,6 +21,8 @@ public:
 		};
 
 		Error error;
+		size_t error_pos;
+
 		Value root;
 		DataStorage storage;
 	};
@@ -32,9 +34,9 @@ public:
 	Result Parse( const char* json_text, size_t json_text_length );
 
 private:
-	const ValueBase* Parse_r();
-	StringType ParseString();
-	void SkipWhitespaces();
+	const ValueBase* Parse_r(); // Can set error flag.
+	StringType ParseString(); // Can set error flag.
+	void SkipWhitespaces(); // Can set error flag.
 
 	void CorrectPointers_r( ValueBase& value );
 	StringType CorrectStringPointer( StringType str );

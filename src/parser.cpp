@@ -17,11 +17,6 @@ const ValueBase* Parser::Parse_r()
 	SkipWhitespaces();
 	if( result_.error != Result::Error::NoError )
 		return nullptr;
-	if( cur_ == end_ )
-	{
-		result_.error= Result::Error::UnexpectedEndOfFile;
-		return nullptr;
-	}
 
 	switch(*cur_)
 	{
@@ -43,11 +38,6 @@ const ValueBase* Parser::Parse_r()
 			SkipWhitespaces();
 			if( result_.error != Result::Error::NoError )
 				return nullptr;
-			if( cur_ == end_ )
-			{
-				result_.error= Result::Error::UnexpectedEndOfFile;
-				return nullptr;
-			}
 			if( *cur_ == '"' )
 			{
 				const StringType key= ParseString();
@@ -57,11 +47,6 @@ const ValueBase* Parser::Parse_r()
 				SkipWhitespaces();
 				if( result_.error != Result::Error::NoError )
 					return nullptr;
-				if( cur_ == end_ )
-				{
-					result_.error= Result::Error::UnexpectedEndOfFile;
-					return nullptr;
-				}
 				if( *cur_ != ':' )
 				{
 					result_.error= Result::Error::UnexpectedLexem;
@@ -137,11 +122,6 @@ const ValueBase* Parser::Parse_r()
 			SkipWhitespaces();
 			if( result_.error != Result::Error::NoError )
 				return nullptr;
-			if( cur_ == end_ )
-			{
-				result_.error= Result::Error::UnexpectedEndOfFile;
-				return nullptr;
-			}
 			if( *cur_ == ']' )
 			{
 				++cur_;
@@ -158,11 +138,6 @@ const ValueBase* Parser::Parse_r()
 				SkipWhitespaces();
 				if( result_.error != Result::Error::NoError )
 					return nullptr;
-				if( cur_ == end_ )
-				{
-					result_.error= Result::Error::UnexpectedEndOfFile;
-					return nullptr;
-				}
 				if( *cur_ == ',' )
 				{
 					++cur_;
@@ -551,15 +526,24 @@ Parser::Result Parser::Parse( const char* const json_text, const size_t json_tex
 	cur_= start_;
 
 	result_.error= Result::Error::NoError;
+	result_.error_pos= 0u;
 	result_.storage.clear();
 
 	const ValueBase* root= Parse_r();
-	const size_t offset=
-		reinterpret_cast<const unsigned char*>(root) - static_cast<const unsigned char*>(nullptr);
-	root= reinterpret_cast<const ValueBase*>( offset + result_.storage.data() );
+	if( result_.error == Result::Error::NoError )
+	{
+		const size_t offset=
+			reinterpret_cast<const unsigned char*>(root) - static_cast<const unsigned char*>(nullptr);
+		root= reinterpret_cast<const ValueBase*>( offset + result_.storage.data() );
 
-	CorrectPointers_r( const_cast<ValueBase&>(*root) );
-	result_.root= Value( root );
+		CorrectPointers_r( const_cast<ValueBase&>(*root) );
+		result_.root= Value( root );
+	}
+	else
+	{
+		result_.error_pos= cur_ - start_;
+		result_.root= Value();
+	}
 
 	return std::move(result_);
 }
