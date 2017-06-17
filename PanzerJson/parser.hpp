@@ -38,7 +38,7 @@ private:
 	StringType ParseString(); // Can set error flag.
 	void SkipWhitespaces(); // Can set error flag.
 
-	void CorrectPointers_r( ValueBase& value );
+	void CorrectPointers_r( ValueBase& value ); // Also, sorts objects keys.
 	StringType CorrectStringPointer( StringType str );
 
 private:

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstring>
 
 #include "../PanzerJson/parser.hpp"
@@ -85,7 +86,6 @@ const ValueBase* Parser::Parse_r()
 				return nullptr;
 			}
 		}
-		// TODO - sort object members.
 
 		const size_t entries_offset= result_.storage.size();
 		result_.storage.resize( result_.storage.size() + sizeof(ObjectValue::ObjectEntry) * entries.size() );
@@ -521,6 +521,14 @@ void Parser::CorrectPointers_r( ValueBase& value )
 
 				CorrectPointers_r( const_cast<ValueBase&>(*entry.value) );
 			}
+
+			std::sort(
+				const_cast<ObjectValue::ObjectEntry*>(object_value.sub_objects),
+				const_cast<ObjectValue::ObjectEntry*>(object_value.sub_objects) + object_value.object_count,
+				[](const ObjectValue::ObjectEntry& l, const ObjectValue::ObjectEntry& r ) -> bool
+				{
+					return StringCompare( l.key, r.key ) < 0;
+				} );
 		}
 		return;
 

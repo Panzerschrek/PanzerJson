@@ -15,6 +15,18 @@ int main()
 			"bar" : "baz",
 			"simple\narray" :
 			[
+				{
+					"g" : 0,
+					"b" : 0,
+					"g" : 0,
+					"a" : 0,
+					"d" : 0,
+					"c" : 0,
+					"fc" : 0,
+					"ff" : 0,
+					"fa" : 0
+				},
+
 				true,
 				null,
 				false,

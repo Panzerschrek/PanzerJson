@@ -60,13 +60,14 @@ def MakeQuotedEscapedString( s ):
 def WritePanzerJsonValue( json_struct ):
 
 	if type(json_struct) is dict:
+		keys_sorted= sorted( json_struct )
 		obj_storage_name= "object_storage" + NextCounter()
 		obj_value_name= "object_value" + NextCounter()
 		result_object_storage= "constexpr const ObjectValue::ObjectEntry " + obj_storage_name + "[]\n{\n"
 		result_object= "constexpr const ObjectValue " + obj_value_name + "( " + obj_storage_name + ", " + str(len(json_struct)) + " );\n\n"
 		result_preinitializer= ""
 
-		for object_key in json_struct :
+		for object_key in keys_sorted :
 			member_value= WritePanzerJsonValue( json_struct[object_key] )
 			result_preinitializer= result_preinitializer + member_value[0]
 			result_object_storage= result_object_storage + "\t{ " + MakeQuotedEscapedString(object_key) + ", &" + member_value[1] + " },\n"
