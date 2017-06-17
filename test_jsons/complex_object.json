@@ -1,11 +1,14 @@
 {
     "a" : 42,
-    "B" : 3.14,
+    "a_as_str" : "42",
+    "B" : -3.14e+0,
     "cwa" : "wtf",
     "BigArray" :
     [
-        42,
+        1458,
         34,
-        { "boom" : "boom" }
+        { "boom" : "boom" },
+        false,
+        true
     ]
 }

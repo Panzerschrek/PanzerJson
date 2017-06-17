@@ -62,16 +62,16 @@ def WritePanzerJsonCpp( json_struct ):
 		return [ "constexpr StringValue " + var_name + "(" + Stringify(json_struct) + ");\n\n", var_name ]
 
 	if type(json_struct) is int:
-		var_name= "string_value" + NextCounter()
-		return [ "constexpr StringValue " + var_name + "(" + Stringify(json_struct) + ");\n\n", var_name ]
+		var_name= "number_value" + NextCounter()
+		return [ "constexpr NumberValue " + var_name + "(" + Stringify(json_struct) + ", " + str(json_struct) + ", " + str(json_struct) + ".0" + ");\n\n", var_name ]
 
 	if type(json_struct) is float:
-		var_name= "string_value" + NextCounter()
-		return [ "constexpr StringValue " + var_name + "(" + Stringify(json_struct) + ");\n\n", var_name ]
+		var_name= "number_value" + NextCounter()
+		return [ "constexpr NumberValue " + var_name + "(" + Stringify(json_struct) + ", " + str(int(json_struct)) + ", " + str(json_struct) + ");\n\n", var_name ]
 
 	if type(json_struct) is bool:
-		var_name= "string_value" + NextCounter()
-		return [ "constexpr StringValue " + var_name + "(" + Stringify(json_struct) + ");\n\n", var_name ]
+		var_name= "bool_value" + NextCounter()
+		return [ "constexpr BoolValue " + var_name + "(" + str(json_struct).lower() + ");\n\n", var_name ]
 
 	if json_struct is None:
 		return [ "", "null" ]

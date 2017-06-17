@@ -6,5 +6,5 @@ SOURCES += \
 	../src/constexpr_init_test.cpp \
 
 HEADERS += \
-	.../PanzerJson/value.hpp \
+	../PanzerJson/value.hpp \
 

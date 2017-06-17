@@ -24,8 +24,8 @@ static constexpr StringValue strings[]
 	StringValue( "Foo" ), StringValue( "Bar" ), StringValue( "Baz" ),
 };
 
-static constexpr StringValue bool_string_value_false(false);
-static constexpr StringValue bool_string_value_true(true);
+static constexpr BoolValue bool_value_false(false);
+static constexpr BoolValue bool_value_true(true);
 
 static constexpr const ValueBase* strings_arr[]{ &strings[0], &strings[1], &strings[2] };
 static constexpr const ValueBase* objects_arr[]{ &simple_object_value0 };
@@ -35,6 +35,7 @@ static constexpr ArrayValue simple_array_value0( strings_arr, 3u );
 static constexpr ArrayValue simple_array_value1( objects_arr, 1u );
 static constexpr ArrayValue simple_array_value2( null_values_arr, 1u );
 
+static constexpr NumberValue number_value( "42", 42, 42.0 );
 
 }
 

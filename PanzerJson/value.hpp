@@ -11,7 +11,8 @@ struct NullValue;
 struct ObjectValue;
 struct ArrayValue;
 struct StringValue;
-	
+struct NumberType;
+
 struct ValueBase
 {
 	enum class Type
@@ -19,7 +20,9 @@ struct ValueBase
 		Null,
 		Object,
 		Array,
-		String, // Also, numbers and booleans
+		String,
+		Number,
+		Bool,
 	};
 	const Type type;
 
@@ -74,10 +77,30 @@ struct StringValue final : public ValueBase
 		: ValueBase(Type::String)
 		, str(in_str)
 	{}
+};
 
-	constexpr StringValue( const bool bool_value ) noexcept
-		: ValueBase(Type::String)
-		, str( bool_value ? "true" : "false" )
+struct NumberValue final : public ValueBase
+{
+	StringType str;
+	int64_t int_value;
+	double double_value;
+
+	// Creator (script or parser) must store original str, and correctly convert to int/double values.
+	constexpr NumberValue( const char* const str, const int64_t in_int_value, const double in_double_value ) noexcept
+		: ValueBase(Type::Number)
+		, str(str)
+		, int_value(in_int_value)
+		, double_value(in_double_value)
+	{}
+};
+
+struct BoolValue final : public ValueBase
+{
+	bool value;
+
+	constexpr BoolValue( const bool in_value ) noexcept
+		: ValueBase(Type::Bool)
+		, value(in_value)
 	{}
 };
 
