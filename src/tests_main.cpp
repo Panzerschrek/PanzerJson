@@ -13,12 +13,12 @@ int main()
 		{
 			"foo" : -44e5,
 			"bar" : "baz",
-			"simple_array" :
+			"simple\narray" :
 			[
 				true,
 				null,
 				false,
-				"42",
+				"\"42\"",
 				{ "on_object" : 1488 },
 				"42 is 42"
 			]

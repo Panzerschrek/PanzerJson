@@ -424,7 +424,57 @@ StringType Parser::ParseString()
 		}
 		else if( *cur_ == '\\' )
 		{
-			// TODO
+			++cur_;
+			if( cur_ == end_ )
+			{
+				result_.error= Result::Error::UnexpectedEndOfFile;
+				return nullptr;
+			}
+
+			switch(*cur_)
+			{
+			case '"':
+			case '\\':
+			case '/':
+				result_.storage.push_back(*cur_);
+				++cur_;
+				break;
+
+			case 'b':
+				result_.storage.push_back('\b');
+				++cur_;
+				break;
+			case 'f':
+				result_.storage.push_back('\f');
+				++cur_;
+				break;
+			case 'n':
+				result_.storage.push_back('\n');
+				++cur_;
+				break;
+			case 'r':
+				result_.storage.push_back('\r');
+				++cur_;
+				break;
+			case 't':
+				result_.storage.push_back('\t');
+				++cur_;
+				break;
+
+			case 'u':
+				if( end_ - cur_ < 5 )
+				{
+					result_.error= Result::Error::UnexpectedEndOfFile;
+					return nullptr;
+				}
+				cur_+= 5;
+				result_.storage.push_back('?'); // TODO - support unicode.
+				break;
+
+			default:
+				result_.error= Result::Error::UnexpectedLexem;
+				return nullptr;
+			};
 		}
 		else
 		{

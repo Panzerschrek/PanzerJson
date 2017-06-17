@@ -32,7 +32,7 @@ def MakeQuotedEscapedString( s ):
 
 	for c in s:
 		if c == '"' :
-			result= result + "\""
+			result= result + "\\\""
 		elif c == '\0':
 			result= result + "\0"
 		elif c == '\\':
