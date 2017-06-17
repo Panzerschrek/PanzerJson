@@ -9,16 +9,18 @@ INCLUDEPATH += OBJECTS_DIR # For test we need read temporary files, generated fr
 PYTHON= "C:/Documents And Settings/Panzerschrek/Python/Python.exe"
 
 SOURCES += \
-	../src/constexpr_init_test.cpp \
 	../src/parser.cpp \
-	../src/parser_test.cpp \
-	../src/tests_main.cpp \
 	../src/value.cpp \
+	../src/tests/constexpr_init_test.cpp \
+	../src/tests/parser_test.cpp \
+	../src/tests/tests_main.cpp \
+	../src/tests/value_test.cpp \
 
 HEADERS += \
 	../PanzerJson/parser.hpp \
 	../PanzerJson/value.inl \
 	../PanzerJson/value.hpp \
+	../src/tests/tests.hpp \
 
 
 # custom "comliler" for tests.
