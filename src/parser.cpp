@@ -353,7 +353,7 @@ const ValueBase* Parser::Parse_r()
 
 			// Allocate number value.
 			const size_t offset= result_.storage.size();
-			result_.storage.resize(  result_.storage.size() + sizeof(NumberValue) );
+			result_.storage.resize( result_.storage.size() + sizeof(NumberValue) );
 			NumberValue* const value= reinterpret_cast<NumberValue*>( result_.storage.data() + offset );
 
 			// Fill data.
@@ -367,10 +367,54 @@ const ValueBase* Parser::Parse_r()
 		// Null
 		else if( *cur_ == 'n' )
 		{
+			if( end_ - cur_ < 4 || std::strncmp( cur_, "null", 4 ) != 0 )
+			{
+				result_.error= Result::Error::UnexpectedLexem;
+				return nullptr;
+			}
+			cur_+= 4;
+
+			const size_t offset= result_.storage.size();
+			result_.storage.resize( result_.storage.size() + sizeof(NullValue) );
+			NullValue* const value= reinterpret_cast<NullValue*>( result_.storage.data() + offset );
+
+			value->type= ValueBase::Type::Null;
+
+			return reinterpret_cast<NullValue*>( static_cast<char*>(nullptr) + offset );
+
 		}
-		// True
 		else if( *cur_ == 't' || *cur_ == 'f' )
 		{
+			bool bool_value;
+			if( *cur_ == 't' )
+			{
+				if( end_ - cur_ < 4 || std::strncmp( cur_, "true", 4 ) != 0 )
+				{
+					result_.error= Result::Error::UnexpectedLexem;
+					return nullptr;
+				}
+				cur_+= 4u;
+				bool_value= true;
+			}
+			else
+			{
+				if( end_ - cur_ < 5 || std::strncmp( cur_, "false", 5 ) != 0 )
+				{
+					result_.error= Result::Error::UnexpectedLexem;
+					return nullptr;
+				}
+				cur_+= 5u;
+				bool_value= false;
+			}
+
+			const size_t offset= result_.storage.size();
+			result_.storage.resize( result_.storage.size() + sizeof(BoolValue) );
+			BoolValue* const value= reinterpret_cast<BoolValue*>( result_.storage.data() + offset );
+
+			value->type= ValueBase::Type::Bool;
+			value->value= bool_value;
+
+			return reinterpret_cast<BoolValue*>( static_cast<char*>(nullptr) + offset );
 		}
 		break;
 	};

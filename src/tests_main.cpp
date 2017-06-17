@@ -15,7 +15,9 @@ int main()
 			"bar" : "baz",
 			"simple_array" :
 			[
-				42,
+				true,
+				null,
+				false,
 				"42",
 				{ "on_object" : 1488 },
 				"42 is 42"
