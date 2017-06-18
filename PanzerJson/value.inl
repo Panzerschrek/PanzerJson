@@ -51,6 +51,26 @@ inline Value::UniversalIterator Value::cend() const noexcept
 	return end();
 }
 
+inline Value::ArrayIterator Value::array_cbegin() const noexcept
+{
+	return array_begin();
+}
+
+inline Value::ArrayIterator Value::array_cend() const noexcept
+{
+	return array_end();
+}
+
+inline Value::ObjectIterator Value::object_cbegin() const noexcept
+{
+	return object_begin();
+}
+
+inline Value::ObjectIterator Value::object_cend() const noexcept
+{
+	return object_end();
+}
+
 // UniversalIterator
 
 inline Value::UniversalIterator::UniversalIterator( const ValueBase::Type type, const Ptr ptr ) noexcept
@@ -155,6 +175,53 @@ inline Value::ArrayIterator Value::ArrayIterator::operator--(int) noexcept
 inline Value Value::ArrayIterator::operator*() const noexcept
 {
 	return Value( *ptr_ );
+}
+
+// ObjectIterator
+
+inline Value::ObjectIterator::ObjectIterator( const ObjectValue::ObjectEntry* const ptr ) noexcept
+	: ptr_(ptr)
+{}
+
+inline bool Value::ObjectIterator::operator==( const ObjectIterator& other ) const noexcept
+{
+	return ptr_ == other.ptr_;
+}
+
+inline bool Value::ObjectIterator::operator!=( const ObjectIterator& other ) const noexcept
+{
+	return !( *this == other );
+}
+
+inline Value::ObjectIterator& Value::ObjectIterator::operator++() noexcept
+{
+	++ptr_;
+	return *this;
+}
+
+inline Value::ObjectIterator& Value::ObjectIterator::operator--() noexcept
+{
+	--ptr_;
+	return *this;
+}
+
+inline Value::ObjectIterator Value::ObjectIterator::operator++(int) noexcept
+{
+	ObjectIterator result= *this;
+	++*this;
+	return result;
+}
+
+inline Value::ObjectIterator Value::ObjectIterator::operator--(int) noexcept
+{
+	ObjectIterator result= *this;
+	--*this;
+	return result;
+}
+
+inline Value::ObjectIterator::ValueType Value::ObjectIterator::operator*() const noexcept
+{
+	return ValueType( ptr_->key, Value( ptr_->value ) );
 }
 
 template<class Stream>

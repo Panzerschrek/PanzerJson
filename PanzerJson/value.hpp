@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <utility>
 
 namespace PanzerJson
 {
@@ -219,6 +220,33 @@ public:
 		const ValueBase* const* ptr_;
 	};
 
+	// Iterator for objects.
+	// Provides access for keys too, unlike UniversalIterator.
+	class ObjectIterator final
+	{
+		friend class Value;
+	private:
+		explicit ObjectIterator( const ObjectValue::ObjectEntry* ptr ) noexcept;
+
+	public:
+		typedef std::pair<StringType, Value> ValueType;
+
+		bool operator==( const ObjectIterator& other ) const noexcept;
+		bool operator!=( const ObjectIterator& other ) const noexcept;
+
+		ObjectIterator& operator++() noexcept;
+		ObjectIterator& operator--() noexcept;
+		ObjectIterator operator++(int) noexcept;
+		ObjectIterator operator--(int) noexcept;
+
+		ValueType operator*() const noexcept;
+		// We can not use operator-> here, because we can not return pointer-type or poiter-like type.
+		// TODO - maybe add operator-> for Value class?
+
+	private:
+		const ObjectValue::ObjectEntry* ptr_;
+	};
+
 	// Iterators.
 	// All iterators valid until "Value" destroying.
 
@@ -230,11 +258,18 @@ public:
 	UniversalIterator cend() const noexcept;
 
 	// Iterators for arrays.
-	// For orher types begin() == end().
+	// For other types begin() == end().
 	ArrayIterator array_begin() const noexcept;
 	ArrayIterator array_end() const noexcept;
 	ArrayIterator array_cbegin() const noexcept;
 	ArrayIterator array_cend() const noexcept;
+
+	// Iterators for objects.
+	// For other types begin() == end().
+	ObjectIterator object_begin() const noexcept;
+	ObjectIterator object_end() const noexcept;
+	ObjectIterator object_cbegin() const noexcept;
+	ObjectIterator object_cend() const noexcept;
 
 private:
 	const ValueBase* SearchObject( const ObjectValue& object, const StringType& key ) const noexcept;

@@ -545,6 +545,157 @@ static void ArrayIteratorTest2()
 	test_iterate( Value( &object_value ) );
 }
 
+static void ObjectIteratorTest0()
+{
+	// Iterator over object.
+
+	static constexpr BoolValue bool_value0( true );
+	static constexpr StringValue string_value0( "a" );
+	static constexpr NumberValue number_value0( "1458.4", 1458, 1458.4 );
+	static constexpr BoolValue bool_value1( false );
+	static constexpr StringValue string_value1( "wtf" );
+	static constexpr NumberValue number_value1( "-25", -25, -25.0);
+	static constexpr const ValueBase* array_objects[3]
+	{
+		&bool_value0 ,
+		&string_value1,
+		&number_value1,
+	};
+	static constexpr ArrayValue array_value( array_objects, 3u );
+	static constexpr ObjectValue::ObjectEntry objects[7u]
+	{
+		{ "apple", &bool_value0 },
+		{ "beer", &string_value0 },
+		{ "candy", &number_value0 },
+		{ "death", &bool_value1 },
+		{ "element", &string_value1 },
+		{ "fruit", &number_value1 },
+		{ "g not gay", &array_value },
+	};
+	static constexpr ObjectValue object_value( objects, 7u );
+	Value value(&object_value);
+
+	const auto it_begin= value.object_begin();
+	const auto it_end= value.object_end();
+
+	test_assert(it_end != it_begin); // Must be not equal for nonempty object.
+
+	// Dereference test.
+	test_assert( std::strcmp( (*it_begin).first, "apple" ) == 0 );
+	test_assert((*it_begin).second.AsInt() == 1);
+	test_assert((*it_begin).second.IsBool());
+
+	{ // Iteration over test.
+		unsigned int iteration_count= 0u;
+		for( auto it= value.object_begin(); it != value.object_end(); ++it )
+		{
+			Value original_value(objects[iteration_count].value);
+			Value::ObjectIterator::ValueType subobject_value= *it;
+
+			test_assert( std::strcmp( subobject_value.first, objects[iteration_count].key ) == 0 );
+			test_assert(subobject_value.second.GetType() == original_value.GetType());
+			test_assert(subobject_value.second.AsInt64() == original_value.AsInt64());
+			test_assert(subobject_value.second.AsDouble() == original_value.AsDouble());
+			test_assert(std::strcmp( subobject_value.second.AsString(), original_value.AsString() ) == 0 );
+
+			++iteration_count;
+		}
+
+		test_assert( iteration_count == value.ElementCount() );
+	}
+
+	{ // Increment/decrement, compare operations test.
+
+		auto it= it_begin;
+		auto next_it= ++it;
+		auto prev_next_it = --next_it;
+		test_assert( it == it );
+		test_assert( next_it != it );
+		test_assert( prev_next_it != it );
+	}
+	{ // postfix operator++ test
+		auto it= it_begin;
+		auto next_it= it++;
+		test_assert( next_it == it_begin );
+		test_assert( it != next_it );
+	}
+	{ // postfix operator-- test
+		auto it= it_end;
+		auto prev_it= it--;
+		test_assert( prev_it == it_end );
+		test_assert( it != prev_it );
+	}
+	{ // prefix operator++ test
+		auto it= it_begin;
+		auto next_it= ++it;
+		test_assert( next_it == it );
+		test_assert( it != it_begin );
+	}
+	{ // prefix operator-- test
+		auto it= it_end;
+		auto prev_it= --it;
+		test_assert( prev_it == it );
+		test_assert( it != it_end );
+	}
+}
+
+static void ObjectIteratorTest1()
+{
+	// Iterate over empty object.
+	ObjectValue empty_object_value(nullptr, 0u);
+	Value value( &empty_object_value );
+
+	const auto it_begin= value.object_begin();
+	const auto it_end= value.object_end();
+
+	test_assert(it_end == it_begin); // Must be equal for empty object.
+
+	unsigned int iteration_count= 0u;
+	for( auto it= value.object_begin(); it != value.object_end(); ++it)
+	{
+		++iteration_count;
+	}
+
+	test_assert( iteration_count == 0u );
+}
+
+static void ObjectIteratorTest2()
+{
+	// Iteration over nonobject values.
+	const auto test_iterate=
+	[]( const Value value ) -> void
+	{
+		test_assert( value.object_begin() == value.object_end() );
+
+		unsigned int iteration_count= 0u;
+		for( auto it= value.object_begin(); it != value.object_end(); ++it)
+		{
+			++iteration_count;
+		}
+		test_assert( iteration_count == 0u );
+	};
+
+	static constexpr NullValue null_value;
+	test_iterate( Value( &null_value ) );
+
+	static constexpr StringValue string_value( "wtf" );
+	test_iterate( Value( &string_value ) );
+
+	static constexpr NumberValue nuber_value( "4578.5", 4578, 4578.5 );
+	test_iterate( Value( &nuber_value ) );
+
+	static constexpr BoolValue bool_value( false );
+	test_iterate( Value( &bool_value ) );
+
+	static constexpr const ValueBase* objects[2]
+	{
+		&nuber_value,
+		&string_value,
+	};
+	static constexpr ArrayValue array_value( objects, 2u );
+	test_iterate( Value( &array_value ) );
+}
+
 void RunValueTests()
 {
 	SimpleNullValueTest();
@@ -563,4 +714,7 @@ void RunValueTests()
 	ArrayIteratorTest0();
 	ArrayIteratorTest1();
 	ArrayIteratorTest2();
+	ObjectIteratorTest0();
+	ObjectIteratorTest1();
+	ObjectIteratorTest2();
 }
