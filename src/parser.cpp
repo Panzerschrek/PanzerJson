@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <cstring>
 
-#include "../PanzerJson/parser.hpp"
+#include "../include/PanzerJson/parser.hpp"
 
 namespace PanzerJson
 {

@@ -1,4 +1,4 @@
-#include "../PanzerJson/value.hpp"
+#include "../include/PanzerJson/value.hpp"
 
 namespace PanzerJson
 {

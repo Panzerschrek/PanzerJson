@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <cstring>
-#include "../PanzerJson/value.hpp"
+#include "../include/PanzerJson/value.hpp"
 #include "tests.hpp"
 
 using namespace PanzerJson;

@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 
-#include "value.hpp"
+#include "../PanzerJson/value.hpp"
 
 namespace PanzerJson
 {

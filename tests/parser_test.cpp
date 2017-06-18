@@ -1,6 +1,6 @@
 #include <cmath>
 #include <cstring>
-#include "../PanzerJson/parser.hpp"
+#include "../include/PanzerJson/parser.hpp"
 #include "tests.hpp"
 
 using namespace PanzerJson;
