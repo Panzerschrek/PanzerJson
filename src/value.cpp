@@ -227,4 +227,23 @@ Value::UniversalIterator Value::end() const noexcept
 	return UniversalIterator( type, ptr );
 }
 
+Value::ArrayIterator Value::array_begin() const noexcept
+{
+	if( value_->type == ValueBase::Type::Array )
+		return ArrayIterator( static_cast<const ArrayValue&>(*value_).objects );
+	else
+		return ArrayIterator( nullptr );
+}
+
+Value::ArrayIterator Value::array_end() const noexcept
+{
+	if( value_->type == ValueBase::Type::Array )
+	{
+		const ArrayValue& array_value= static_cast<const ArrayValue&>(*value_);
+		return ArrayIterator( array_value.objects + array_value.object_count );
+	}
+	else
+		return ArrayIterator( nullptr );
+}
+
 } // namespace PanzerJson

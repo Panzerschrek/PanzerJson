@@ -195,11 +195,46 @@ public:
 		Ptr ptr_;
 	};
 
-	// Universal iterators.
+	// Iterator for arrays.
+	class ArrayIterator final
+	{
+		friend class Value;
+	private:
+		explicit ArrayIterator( const ValueBase* const* ptr ) noexcept;
+
+	public:
+		bool operator==( const ArrayIterator& other ) const noexcept;
+		bool operator!=( const ArrayIterator& other ) const noexcept;
+
+		ArrayIterator& operator++() noexcept;
+		ArrayIterator& operator--() noexcept;
+		ArrayIterator operator++(int) noexcept;
+		ArrayIterator operator--(int) noexcept;
+
+		Value operator*() const noexcept;
+		// We can not use operator-> here, because we can not return pointer-type or poiter-like type.
+		// TODO - maybe add operator-> for Value class?
+
+	private:
+		const ValueBase* const* ptr_;
+	};
+
+	// Iterators.
+	// All iterators valid until "Value" destroying.
+
+	// Universal iterators - for both arrays and objects.
+	// For orher types begin() == end().
 	UniversalIterator begin() const noexcept;
 	UniversalIterator end() const noexcept;
 	UniversalIterator cbegin() const noexcept;
 	UniversalIterator cend() const noexcept;
+
+	// Iterators for arrays.
+	// For orher types begin() == end().
+	ArrayIterator array_begin() const noexcept;
+	ArrayIterator array_end() const noexcept;
+	ArrayIterator array_cbegin() const noexcept;
+	ArrayIterator array_cend() const noexcept;
 
 private:
 	const ValueBase* SearchObject( const ObjectValue& object, const StringType& key ) const noexcept;

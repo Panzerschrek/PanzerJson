@@ -110,6 +110,53 @@ inline Value Value::UniversalIterator::operator*() const noexcept
 		return Value( ptr_.object_entry->value );
 }
 
+// ArrayIterator
+
+inline Value::ArrayIterator::ArrayIterator( const ValueBase* const* const ptr ) noexcept
+	: ptr_(ptr)
+{}
+
+inline bool Value::ArrayIterator::operator==( const ArrayIterator& other ) const noexcept
+{
+	return ptr_ == other.ptr_;
+}
+
+inline bool Value::ArrayIterator::operator!=( const ArrayIterator& other ) const noexcept
+{
+	return !( *this == other );
+}
+
+inline Value::ArrayIterator& Value::ArrayIterator::operator++() noexcept
+{
+	++ptr_;
+	return *this;
+}
+
+inline Value::ArrayIterator& Value::ArrayIterator::operator--() noexcept
+{
+	--ptr_;
+	return *this;
+}
+
+inline Value::ArrayIterator Value::ArrayIterator::operator++(int) noexcept
+{
+	ArrayIterator result= *this;
+	++*this;
+	return result;
+}
+
+inline Value::ArrayIterator Value::ArrayIterator::operator--(int) noexcept
+{
+	ArrayIterator result= *this;
+	--*this;
+	return result;
+}
+
+inline Value Value::ArrayIterator::operator*() const noexcept
+{
+	return Value( *ptr_ );
+}
+
 template<class Stream>
 void Value::SerializeString( Stream& stream, StringType str )
 {
