@@ -219,9 +219,9 @@ inline Value::ObjectIterator Value::ObjectIterator::operator--(int) noexcept
 	return result;
 }
 
-inline Value::ObjectIterator::ValueType Value::ObjectIterator::operator*() const noexcept
+inline Value::ObjectIterator::value_type Value::ObjectIterator::operator*() const noexcept
 {
-	return ValueType( ptr_->key, Value( ptr_->value ) );
+	return value_type( ptr_->key, Value( ptr_->value ) );
 }
 
 template<class Stream>

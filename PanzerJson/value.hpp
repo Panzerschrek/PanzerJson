@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <iterator>
 #include <utility>
 
 namespace PanzerJson
@@ -162,14 +163,19 @@ public:
 	void Serialize( Stream& stream );
 
 	// Iterators
+private:
+	// TODO - maybe support random access iterators?
+	typedef std::bidirectional_iterator_tag IteratorsTag;
+public:
 
 	// Universal iterator for objects and arrays.
 	// Can iteratre over values, but not over objects keys.
 	// Slower, then specialized iterators.
-	class UniversalIterator final
+	class UniversalIterator final : public std::iterator< IteratorsTag, Value >
 	{
-		friend class Value;
 	private:
+		friend class Value;
+
 		union Ptr
 		{
 			const ValueBase* const* array_value;
@@ -179,6 +185,8 @@ public:
 		UniversalIterator( ValueBase::Type type, Ptr ptr ) noexcept;
 
 	public:
+		UniversalIterator() noexcept {}
+
 		bool operator==( const UniversalIterator& other ) const noexcept;
 		bool operator!=( const UniversalIterator& other ) const noexcept;
 
@@ -197,13 +205,15 @@ public:
 	};
 
 	// Iterator for arrays.
-	class ArrayIterator final
+	class ArrayIterator final : public std::iterator< IteratorsTag, Value >
 	{
-		friend class Value;
 	private:
+		friend class Value;
 		explicit ArrayIterator( const ValueBase* const* ptr ) noexcept;
 
 	public:
+		ArrayIterator() noexcept {}
+
 		bool operator==( const ArrayIterator& other ) const noexcept;
 		bool operator!=( const ArrayIterator& other ) const noexcept;
 
@@ -223,13 +233,14 @@ public:
 	// Iterator for objects.
 	// Provides access for keys too, unlike UniversalIterator.
 	class ObjectIterator final
+		: public std::iterator< IteratorsTag, std::pair<StringType, Value> >
 	{
-		friend class Value;
 	private:
+		friend class Value;
 		explicit ObjectIterator( const ObjectValue::ObjectEntry* ptr ) noexcept;
 
 	public:
-		typedef std::pair<StringType, Value> ValueType;
+		ObjectIterator() noexcept {}
 
 		bool operator==( const ObjectIterator& other ) const noexcept;
 		bool operator!=( const ObjectIterator& other ) const noexcept;
@@ -239,13 +250,17 @@ public:
 		ObjectIterator operator++(int) noexcept;
 		ObjectIterator operator--(int) noexcept;
 
-		ValueType operator*() const noexcept;
+		value_type operator*() const noexcept;
 		// We can not use operator-> here, because we can not return pointer-type or poiter-like type.
 		// TODO - maybe add operator-> for Value class?
 
 	private:
 		const ObjectValue::ObjectEntry* ptr_;
 	};
+
+	static_assert( sizeof(UniversalIterator) <= sizeof(void*) * 2u, "Universal iterator is too large." );
+	static_assert( sizeof(ArrayIterator) == sizeof(void*), "Specialized iterator must have pointer size." );
+	static_assert( sizeof(ObjectIterator) == sizeof(void*), "Specialized iterator must have pointer size." );
 
 	// Iterators.
 	// All iterators valid until "Value" destroying.

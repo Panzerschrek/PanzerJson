@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstring>
 #include "../PanzerJson/value.hpp"
 #include "tests.hpp"
@@ -590,7 +591,7 @@ static void ObjectIteratorTest0()
 		for( auto it= value.object_begin(); it != value.object_end(); ++it )
 		{
 			Value original_value(objects[iteration_count].value);
-			Value::ObjectIterator::ValueType subobject_value= *it;
+			Value::ObjectIterator::value_type subobject_value= *it;
 
 			test_assert( std::strcmp( subobject_value.first, objects[iteration_count].key ) == 0 );
 			test_assert(subobject_value.second.GetType() == original_value.GetType());
@@ -696,6 +697,46 @@ static void ObjectIteratorTest2()
 	test_iterate( Value( &array_value ) );
 }
 
+static void IteratorsAlgorithms()
+{
+	// Test for compile-time checking of iterator traits.
+
+	static constexpr NumberValue number_values[3]
+	{
+		NumberValue( "", 158, 158.0 ),
+		NumberValue( "", -14, -14.0 ),
+		NumberValue( "", 25, 25.0 ),
+	};
+	static constexpr const ValueBase* array_objects[3]
+	{
+		&number_values[0],
+		&number_values[1],
+		&number_values[2],
+	};
+	static constexpr ArrayValue array_value( array_objects, 3u );
+	Value value( &array_value );
+
+	const auto pred= []( Value v ) { return v.AsDouble() >= 0.0f; };
+	const auto object_pred= []( Value::ObjectIterator::value_type v ) { return v.second.AsDouble() >= 0.0f;; };
+	const auto comp = []( Value l, Value r ){ return l.AsDouble() < r.AsDouble(); };
+	const auto object_comp =
+	[]( Value::ObjectIterator::value_type l, Value::ObjectIterator::value_type r )
+	{ return l.second.AsDouble() < r.second.AsDouble(); };
+
+	// Find if - InputIterator
+	test_assert( std::find_if( value.begin(), value.end(), pred ) != value.end() );
+	test_assert( std::find_if( value.array_begin(), value.array_end(), pred ) != value.array_end() );
+	test_assert( std::find_if( value.object_begin(), value.object_end(), object_pred ) == value.object_end() );
+
+	// Is Sorted - ForwardIterator
+	test_assert( !std::is_sorted( value.begin(), value.end(), comp ) );
+	test_assert( !std::is_sorted( value.array_begin(), value.array_end(), comp ) );
+	test_assert(  std::is_sorted( value.object_begin(), value.object_end(), object_comp ) ); // Object range is empty -> it is sorted
+
+	// TODO - add tests for BidirectionalIterator
+	// Now - there are no std::algorithm, using BidirectionalIterator and no modifying input sequence.
+}
+
 void RunValueTests()
 {
 	SimpleNullValueTest();
@@ -717,4 +758,5 @@ void RunValueTests()
 	ObjectIteratorTest0();
 	ObjectIteratorTest1();
 	ObjectIteratorTest2();
+	IteratorsAlgorithms();
 }
