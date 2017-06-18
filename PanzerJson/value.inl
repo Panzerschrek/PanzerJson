@@ -1,4 +1,5 @@
 #pragma once
+#include <cstring>
 
 namespace PanzerJson
 {
@@ -38,6 +39,75 @@ inline bool Value::IsNumber() const noexcept
 inline bool Value::IsBool() const noexcept
 {
 	return GetType() == ValueBase::Type::Bool;
+}
+
+inline Value::UniversalIterator Value::cbegin() const noexcept
+{
+	return begin();
+}
+
+inline Value::UniversalIterator Value::cend() const noexcept
+{
+	return end();
+}
+
+// UniversalIterator
+
+inline Value::UniversalIterator::UniversalIterator( const ValueBase::Type type, const Ptr ptr ) noexcept
+	: type_(type)
+	, ptr_(ptr)
+{
+	// TODO - assert, if type is not array or object.
+}
+
+inline bool Value::UniversalIterator::operator==( const UniversalIterator& other ) const noexcept
+{
+	return type_ == other.type_ && std::memcmp( &ptr_, &other.ptr_, sizeof(Ptr) ) == 0;
+}
+
+inline bool Value::UniversalIterator::operator!=( const UniversalIterator& other ) const noexcept
+{
+	return !( *this == other );
+}
+
+inline Value::UniversalIterator& Value::UniversalIterator::operator++() noexcept
+{
+	if( type_ == ValueBase::Type::Array )
+		++ptr_.array_value;
+	else
+		++ptr_.object_entry;
+	return *this;
+}
+
+inline Value::UniversalIterator& Value::UniversalIterator::operator--() noexcept
+{
+	if( type_ == ValueBase::Type::Array )
+		--ptr_.array_value;
+	else
+		--ptr_.object_entry;
+	return *this;
+}
+
+inline Value::UniversalIterator Value::UniversalIterator::operator++(int) noexcept
+{
+	UniversalIterator result= *this;
+	++*this;
+	return result;
+}
+
+inline Value::UniversalIterator Value::UniversalIterator::operator--(int) noexcept
+{
+	UniversalIterator result= *this;
+	--*this;
+	return result;
+}
+
+inline Value Value::UniversalIterator::operator*() const noexcept
+{
+	if( type_ == ValueBase::Type::Array )
+		return Value( *ptr_.array_value );
+	else
+		return Value( ptr_.object_entry->value );
 }
 
 template<class Stream>

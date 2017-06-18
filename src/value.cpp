@@ -165,4 +165,66 @@ StringType Value::AsString() const noexcept
 	return "";
 }
 
+Value::UniversalIterator Value::begin() const noexcept
+{
+	UniversalIterator::Ptr ptr;
+	ptr.array_value= nullptr;
+	ValueBase::Type type= ValueBase::Type::Array;
+
+	switch(value_->type)
+	{
+	case ValueBase::Type::Object:
+		ptr.object_entry= static_cast<const ObjectValue&>(*value_).sub_objects;
+		type= ValueBase::Type::Object;
+		break;
+
+	case ValueBase::Type::Array:
+		ptr.array_value= static_cast<const ArrayValue&>(*value_).objects;
+		type= ValueBase::Type::Array;
+		break;
+
+	case ValueBase::Type::Null:
+	case ValueBase::Type::String:
+	case ValueBase::Type::Number:
+	case ValueBase::Type::Bool:
+		break;
+	};
+
+	return UniversalIterator( type, ptr );
+}
+
+Value::UniversalIterator Value::end() const noexcept
+{
+	UniversalIterator::Ptr ptr;
+	ptr.array_value= nullptr;
+	ValueBase::Type type= ValueBase::Type::Array;
+
+	switch(value_->type)
+	{
+	case ValueBase::Type::Object:
+		{
+			const ObjectValue& object_value= static_cast<const ObjectValue&>(*value_);
+			ptr.object_entry= object_value.sub_objects + object_value.object_count;
+			type= ValueBase::Type::Object;
+		}
+		break;
+
+	case ValueBase::Type::Array:
+		{
+			const ArrayValue& array_value= static_cast<const ArrayValue&>(*value_);
+			ptr.array_value= array_value.objects + array_value.object_count;
+			type= ValueBase::Type::Array;
+		}
+		break;
+
+	case ValueBase::Type::Null:
+	case ValueBase::Type::String:
+	case ValueBase::Type::Number:
+	case ValueBase::Type::Bool:
+		break;
+	};
+
+	return UniversalIterator( type, ptr );
+}
+
 } // namespace PanzerJson

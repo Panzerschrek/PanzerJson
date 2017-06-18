@@ -114,7 +114,7 @@ class Value final
 {
 public:
 	Value() noexcept;
-	Value( const ValueBase* value ) noexcept;
+	explicit Value( const ValueBase* value ) noexcept;
 	~Value();
 
 	// Type access.
@@ -155,8 +155,51 @@ public:
 	// Returns "true" or "false" for bool values.
 	StringType AsString() const noexcept;
 
+	// Simple serialization.
+	// TODO - does this needs in this library?
 	template<class Stream>
 	void Serialize( Stream& stream );
+
+	// Iterators
+
+	// Universal iterator for objects and arrays.
+	// Can iteratre over values, but not over objects keys.
+	// Slower, then specialized iterators.
+	class UniversalIterator final
+	{
+		friend class Value;
+	private:
+		union Ptr
+		{
+			const ValueBase* const* array_value;
+			const ObjectValue::ObjectEntry* object_entry;
+		};
+
+		UniversalIterator( ValueBase::Type type, Ptr ptr ) noexcept;
+
+	public:
+		bool operator==( const UniversalIterator& other ) const noexcept;
+		bool operator!=( const UniversalIterator& other ) const noexcept;
+
+		UniversalIterator& operator++() noexcept;
+		UniversalIterator& operator--() noexcept;
+		UniversalIterator operator++(int) noexcept;
+		UniversalIterator operator--(int) noexcept;
+
+		Value operator*() const noexcept;
+		// We can not use operator-> here, because we can not return pointer-type or poiter-like type.
+		// TODO - maybe add operator-> for Value class?
+
+	private:
+		ValueBase::Type type_; // Must be array or object.
+		Ptr ptr_;
+	};
+
+	// Universal iterators.
+	UniversalIterator begin() const noexcept;
+	UniversalIterator end() const noexcept;
+	UniversalIterator cbegin() const noexcept;
+	UniversalIterator cend() const noexcept;
 
 private:
 	const ValueBase* SearchObject( const ObjectValue& object, const StringType& key ) const noexcept;
