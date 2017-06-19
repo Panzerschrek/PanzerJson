@@ -10,7 +10,7 @@ DEFINES+= DEBUG
 QMAKE_CXXFLAGS += -Wextra
 
 # Put path to your python here.
-PYTHON= python
+PYTHON= python3
 
 SOURCES += \
 	../src/parser.cpp \
