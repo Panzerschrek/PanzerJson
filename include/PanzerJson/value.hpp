@@ -138,6 +138,15 @@ public:
 	// Returns NullValue, if value is not array or if index out of bounds.
 	Value operator[]( size_t array_index ) const noexcept;
 
+	// Special overload for operator[], when "size_t" and "unsigned int" are different types.
+	template<
+		class IndexType= unsigned int>
+		typename std::enable_if< !std::is_same< IndexType, size_t >::value, Value >::type
+	operator[]( IndexType array_index ) const noexcept
+	{
+		return (*this)[ static_cast<size_t>(array_index) ];
+	}
+
 	// Member access for objects. Returns NullValue, if value does not containt key,
 	Value operator[]( const StringType& key ) const noexcept;
 
