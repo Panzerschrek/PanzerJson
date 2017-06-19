@@ -27,9 +27,6 @@ Value::Value( const ValueBase* const value ) noexcept
 	// TODO - assert, if input value is nullptr
 }
 
-Value::~Value()
-{}
-
 size_t Value::ElementCount() const noexcept
 {
 	if( value_->type == ValueBase::Type::Object )

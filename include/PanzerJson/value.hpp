@@ -117,7 +117,6 @@ class Value final
 public:
 	Value() noexcept;
 	explicit Value( const ValueBase* value ) noexcept;
-	~Value();
 
 	// Type access.
 	ValueBase::Type GetType() const noexcept;
