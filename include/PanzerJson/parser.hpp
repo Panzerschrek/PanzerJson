@@ -46,6 +46,8 @@ private:
 	const char* end_;
 	const char* cur_;
 	Result result_;
+
+	std::vector<unsigned char> number_digits_;
 };
 
 } // namespace PanzerJson

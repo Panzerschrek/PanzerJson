@@ -108,6 +108,7 @@ static void OverflowingIntegerParseTest2()
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
 	test_assert( result.root.AsUint64() == std::numeric_limits<uint64_t>::max() );
+	test_assert_near( result.root.AsDouble(), +1564578545525637437852786578527857852782782814522742828.0, 1.0e45 );
 }
 
 static void OverflowingIntegerParseTest3()
@@ -120,6 +121,7 @@ static void OverflowingIntegerParseTest3()
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
 	test_assert( result.root.AsInt64() == std::numeric_limits<int64_t>::min() );
+	test_assert_near( result.root.AsDouble(), -1564578545525637437852786578527857852782782814522742828.0, 1.0e45 );
 }
 
 static void LongNegativeIntegerParseTest()
@@ -287,6 +289,50 @@ static void BigDoubleParseTest2()
 	test_assert_near( result.root.AsDouble(), 78.478e-245, 1e-236 );
 }
 
+static void ZeroLeadingDoubleParseTest0()
+{
+	static const char json_text[]= "0.00005458";
+
+	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+
+	test_assert( result.error == Parser::Result::Error::NoError );
+	test_assert( result.root.GetType() == ValueBase::Type::Number );
+	test_assert_near( result.root.AsDouble(), 0.00005458, 1.0e-16 );
+}
+
+static void ZeroLeadingDoubleParseTest1()
+{
+	static const char json_text[]= "0.00005458e25";
+
+	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+
+	test_assert( result.error == Parser::Result::Error::NoError );
+	test_assert( result.root.GetType() == ValueBase::Type::Number );
+	test_assert_near( result.root.AsDouble(), 0.00005458e25, 1.0e9 );
+}
+
+static void ZeroLeadingDoubleParseTest2()
+{
+	static const char json_text[]= "0.00005458e-25";
+
+	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+
+	test_assert( result.error == Parser::Result::Error::NoError );
+	test_assert( result.root.GetType() == ValueBase::Type::Number );
+	test_assert_near( result.root.AsDouble(), 0.00005458e-25, 1.0e-41 );
+}
+
+static void ZeroLeadingDoubleParseTest3()
+{
+	static const char json_text[]= "000000000005467582475765";
+
+	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+
+	test_assert( result.error == Parser::Result::Error::NoError );
+	test_assert( result.root.GetType() == ValueBase::Type::Number );
+	test_assert_near( result.root.AsDouble(), 5467582475765.0, 1.0e1 );
+}
+
 static void ComplexObjectParseTest()
 {
 	static const char json_text[]=
@@ -366,10 +412,14 @@ void RunParserTests()
 	ZeroNumberParseTest0();
 	ZeroNumberParseTest1();
 	ZeroNumberParseTest2();
+	ZeroLeadingDoubleParseTest3();
 	ZeroNumberParseTest3();
 	BigDoubleParseTest0();
 	BigDoubleParseTest1();
 	BigDoubleParseTest2();
+	ZeroLeadingDoubleParseTest0();
+	ZeroLeadingDoubleParseTest1();
+	ZeroLeadingDoubleParseTest2();
 	ComplexObjectParseTest();
 	ComplexArrayParseTest();
 	ComplexStrigParseTest();
