@@ -1,5 +1,6 @@
 #include <cmath>
 #include <cstring>
+#include <limits>
 #include "../include/PanzerJson/parser.hpp"
 #include "tests.hpp"
 
@@ -69,6 +70,56 @@ static void LongIntegerParseTest()
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
 	test_assert( result.root.AsInt64() == 7652154277405721596ll );
+}
+
+static void OverflowingIntegerParseTest0()
+{
+	// Overflowing value must be clamped to limit.
+	static const char json_text[]= "1e56";
+
+	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+
+	test_assert( result.error == Parser::Result::Error::NoError );
+	test_assert( result.root.GetType() == ValueBase::Type::Number );
+	test_assert( result.root.AsUint64() == std::numeric_limits<uint64_t>::max() );
+	test_assert_near( result.root.AsDouble(), 1.0e56, 1.0e47 );
+}
+
+static void OverflowingIntegerParseTest1()
+{
+	// Overflowing value must be clamped to limit.
+	static const char json_text[]= "-1e56";
+
+	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+
+	test_assert( result.error == Parser::Result::Error::NoError );
+	test_assert( result.root.GetType() == ValueBase::Type::Number );
+	test_assert( result.root.AsInt64() == std::numeric_limits<int64_t>::min() );
+	test_assert_near( result.root.AsDouble(), -1.0e56, 1.0e47 );
+}
+
+static void OverflowingIntegerParseTest2()
+{
+	// Overflowing value must be clamped to limit.
+	static const char json_text[]= "1564578545525637437852786578527857852782782814522742828";
+
+	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+
+	test_assert( result.error == Parser::Result::Error::NoError );
+	test_assert( result.root.GetType() == ValueBase::Type::Number );
+	test_assert( result.root.AsUint64() == std::numeric_limits<uint64_t>::max() );
+}
+
+static void OverflowingIntegerParseTest3()
+{
+	// Overflowing value must be clamped to limit.
+	static const char json_text[]= "-1564578545525637437852786578527857852782782814522742828";
+
+	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+
+	test_assert( result.error == Parser::Result::Error::NoError );
+	test_assert( result.root.GetType() == ValueBase::Type::Number );
+	test_assert( result.root.AsInt64() == std::numeric_limits<int64_t>::min() );
 }
 
 static void LongNegativeIntegerParseTest()
@@ -301,6 +352,10 @@ void RunParserTests()
 	SimpleNumberParseTest();
 	SimpleNegativeNumberParseTest();
 	LongIntegerParseTest();
+	OverflowingIntegerParseTest0();
+	OverflowingIntegerParseTest1();
+	OverflowingIntegerParseTest2();
+	OverflowingIntegerParseTest3();
 	LongNegativeIntegerParseTest();
 	LongExponentialIntegerTest();
 	PositiveExponentialNumberTest();

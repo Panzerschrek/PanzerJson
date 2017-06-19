@@ -7,26 +7,26 @@ namespace PanzerJson
 {
 
 // For small powers.
-static int64_t TenPower( const int64_t power )
+static int64_t TenPower( const uint64_t power )
 {
-	int64_t result= 1;
-	for( int64_t i= 0; i < power; i++ )
-		result*= 10;
+	uint64_t result= 1u;
+	for( uint64_t i= 0u; i < power; i++ )
+		result*= 10u;
 	return result;
 }
 
 // For big powers.
 // Method is faster for big powers - complexity is about O(log2(power)).
-static double TenPowerDouble( const int64_t power )
+static double TenPowerDouble( const uint64_t power )
 {
 	if( power == 0 )
 		return 1.0;
 	if( power == 1 )
 		return 10.0;
 
-	const double half_power= TenPowerDouble( power / 2 );
+	const double half_power= TenPowerDouble( power / 2u );
 	double result= half_power * half_power;
-	if( ( power & 1 ) != 0 )
+	if( ( power & 1u ) != 0 )
 		result*= 10.0;
 
 	return result;
@@ -214,22 +214,33 @@ const ValueBase* Parser::Parse_r()
 		// Numbers.
 		if( ( *cur_ >= '0' && *cur_ <= '9' ) || *cur_ == '-' )
 		{
-			int64_t integer_part= 0;
+			uint64_t integer_part= 0;
 			int64_t exponent= 0;
-			int64_t fractional_part= 0;
+			uint64_t fractional_part= 0;
 			size_t fractional_part_digits= 0;
-			int64_t sign= 1;
-			int64_t exponent_sign= 1;
+			bool is_negative= false;
+
+			constexpr uint64_t c_max_uint64= std::numeric_limits<uint64_t>::max();
+			constexpr uint64_t c_max_abs_int64= c_max_uint64 / 2u + 1u;
 
 			const auto parse_decimal=
-			[&]() -> int64_t
+			[&]() -> uint64_t
 			{
-				int64_t result= 0;
+				uint64_t result= 0;
 				while( cur_ < end_ )
 				{
 					if( *cur_ >= '0' && *cur_ <= '9' )
 					{
-						result= result * 10 + int64_t( *cur_ - '0' );
+						const uint64_t mul10= result * 10u;
+						if( mul10 / 10u != result || mul10 < result ) // Detect overflow.
+							return c_max_uint64;
+
+						const uint64_t digit= uint64_t( *cur_ - '0' );
+						const uint64_t add_digit= mul10 + digit;
+						if( add_digit < mul10 ) // Detect overflow.
+							return c_max_uint64;
+
+						result= add_digit;
 						++cur_;
 					}
 					else
@@ -253,7 +264,7 @@ const ValueBase* Parser::Parse_r()
 					return nullptr;
 				}
 
-				sign= -1;
+				is_negative= true;
 			}
 
 			integer_part= parse_decimal();
@@ -282,6 +293,8 @@ const ValueBase* Parser::Parse_r()
 				goto num_parse_end;
 			if( *cur_ == 'e' || *cur_ == 'E' )
 			{
+				bool exponent_is_negative= false;
+
 				++cur_;
 				if( cur_ == end_ )
 				{
@@ -291,7 +304,7 @@ const ValueBase* Parser::Parse_r()
 
 				if( *cur_ == '+' || *cur_ == '-' )
 				{
-					if( *cur_ == '-' ) exponent_sign= -1;
+					if( *cur_ == '-' ) exponent_is_negative= true;
 					++cur_;
 				}
 
@@ -306,50 +319,74 @@ const ValueBase* Parser::Parse_r()
 					return nullptr;
 				}
 
-				exponent= parse_decimal() * exponent_sign;
+				uint64_t exponent_decimal= parse_decimal();
+				if( exponent_is_negative )
+					exponent= -static_cast<int64_t>(exponent_decimal);
+				else
+					exponent= +static_cast<int64_t>(exponent_decimal);
 			}
 
 			num_parse_end:
 
 			int64_t result_int_val;
 			double result_double_val;
+
+			const int64_t exponent_minis_fractional_part_digits= int64_t(exponent) - int64_t(fractional_part_digits);
 			{
-				if( exponent >= 0 )
+				uint64_t result_val= integer_part;
+				if( exponent > 0 )
 				{
-					if( exponent >= 17 )
+					for( int64_t i= 0; i < exponent; i++ )
 					{
-						// Hack for very big exponents - try produce result in place.
-						// TODO - prevent overflowing, clamp value.
-						result_int_val= integer_part;
-						for( int64_t i= 0; i < exponent; i++ )
-							result_int_val*= 10;
+						const uint64_t mul10= result_val * 10u;
+						if( mul10 / 10u != result_val || mul10 < result_val )
+						{
+							 // Detect overflow.
+							result_val= c_max_uint64;
+							break;
+						}
+						result_val= mul10;
 					}
+
+					uint64_t fractional_part_to_result_int_part= fractional_part;
+					for( int64_t i= 0; i < +exponent_minis_fractional_part_digits; i++ )
+					{
+						const uint64_t mul10= fractional_part_to_result_int_part * 10u;
+						if( mul10 / 10u != fractional_part_to_result_int_part || mul10 < fractional_part_to_result_int_part )
+						{
+							 // Detect overflow.
+							fractional_part_to_result_int_part= c_max_uint64;
+							break;
+						}
+						fractional_part_to_result_int_part= mul10;
+					}
+					for( int64_t i= 0; i < -exponent_minis_fractional_part_digits; i++ )
+					{
+						fractional_part_to_result_int_part/= 10u;
+						if( fractional_part_to_result_int_part == 0u )
+							break;
+					}
+
+					const uint64_t add_fractional_digits= result_val + fractional_part_to_result_int_part;
+					if( add_fractional_digits < result_val )
+						result_val= c_max_uint64;
 					else
-						result_int_val= integer_part * TenPower( exponent );
-
-					int64_t fractional_part_to_result_int_part= fractional_part;
-					for( int64_t i= 0; i < std::max( 0ll, exponent - fractional_part_digits ); i++ )
-						fractional_part_to_result_int_part*= 10;
-					for( int64_t i= 0; i < std::max( 0ll, fractional_part_digits - exponent ); i++ )
-						fractional_part_to_result_int_part/= 10;
-
-					result_int_val+= fractional_part_to_result_int_part;
+						result_val= add_fractional_digits;
 				}
 				else
 				{
-					if( exponent <= -17 )
+					for( int64_t i= 0; i < -exponent; i++ )
 					{
-						// Hack for very big exponents - try produce result in place.
-						// TODO - prevent overflowing, clamp value.
-						result_int_val= integer_part;
-						for( int64_t i= 0; i < -exponent; i++ )
-							result_int_val/= 10;
+						result_val/= 10u;
+						if( result_val == 0u )
+							break;
 					}
-					else
-						result_int_val= integer_part / TenPower( -exponent );
 				}
 
-				result_int_val*= sign;
+				if( is_negative )
+					result_int_val= -static_cast<int64_t>( std::min( result_val, c_max_abs_int64 ) );
+				else
+					result_int_val= +static_cast<int64_t>( result_val );
 			}
 			{
 				// For "small" exponents use integer function (it is more precise).
@@ -370,14 +407,15 @@ const ValueBase* Parser::Parse_r()
 				}
 
 				double fractional_part_power= 1.0;
-				for( int64_t i= 0; i < std::max( 0ll, exponent - fractional_part_digits ); i++ )
+				for( int64_t i= 0; i < +exponent_minis_fractional_part_digits; i++ )
 					fractional_part_power*= 10.0;
-				for( int64_t i= 0; i < std::max( 0ll, fractional_part_digits - exponent ); i++ )
+				for( int64_t i= 0; i < -exponent_minis_fractional_part_digits; i++ )
 					fractional_part_power/= 10.0;
 
 				result_double_val+= fractional_part_power * static_cast<double>(fractional_part);
 
-				result_double_val*= static_cast<double>(sign);
+				if( is_negative )
+					result_double_val*= -1.0;
 			}
 
 			// Allocate string value.
