@@ -49,8 +49,14 @@ const ValueBase* Parser::Parse_r()
 			return nullptr;
 		}
 
-		std::vector<ObjectValue::ObjectEntry> entries;
+		std::vector<ObjectValue::ObjectEntry> entries_additional_storage;
+		std::vector<ObjectValue::ObjectEntry>& entries=
+			object_level_ < c_vectors_cache_size_
+				? object_elements_[ object_level_ ]
+				: entries_additional_storage;
+		entries.clear();
 
+		object_level_++;
 		while(true)
 		{
 			SkipWhitespaces();
@@ -103,6 +109,7 @@ const ValueBase* Parser::Parse_r()
 				return nullptr;
 			}
 		}
+		object_level_--;
 
 		const size_t entries_offset= result_.storage.size();
 		result_.storage.resize( result_.storage.size() + sizeof(ObjectValue::ObjectEntry) * entries.size() );
@@ -132,8 +139,14 @@ const ValueBase* Parser::Parse_r()
 			return nullptr;
 		}
 
-		std::vector<const ValueBase*> values;
+		std::vector<const ValueBase*> values_additional_storage;
+		std::vector<const ValueBase*>& values=
+			array_level_ < c_vectors_cache_size_
+				? array_elements_[ array_level_ ]
+				: values_additional_storage;
+		values.clear();
 
+		array_level_++;
 		while(true)
 		{
 			SkipWhitespaces();
@@ -162,6 +175,7 @@ const ValueBase* Parser::Parse_r()
 				}
 			}
 		} // while true
+		array_level_--;
 
 		const size_t values_offset= result_.storage.size();
 		result_.storage.resize( result_.storage.size() + sizeof(const ValueBase*) * values.size() );
@@ -648,6 +662,9 @@ Parser::Result Parser::Parse( const char* const json_text, const size_t json_tex
 	result_.error_pos= 0u;
 	result_.storage.clear();
 
+	array_level_= 0u;
+	object_level_= 0u;
+
 	const ValueBase* root= Parse_r();
 	if( result_.error == Result::Error::NoError )
 	{
@@ -665,6 +682,23 @@ Parser::Result Parser::Parse( const char* const json_text, const size_t json_tex
 	}
 
 	return std::move(result_);
+}
+
+void Parser::ResetCaches()
+{
+	number_digits_.clear();
+	number_digits_.shrink_to_fit();
+
+	for( std::vector<const ValueBase*>& vec : array_elements_ )
+	{
+		vec.clear();
+		vec.shrink_to_fit();
+	}
+	for( std::vector<ObjectValue::ObjectEntry>& vec : object_elements_ )
+	{
+		vec.clear();
+		vec.shrink_to_fit();
+	}
 }
 
 } // namespace PanzerJson

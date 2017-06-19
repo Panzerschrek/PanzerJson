@@ -33,6 +33,8 @@ public:
 
 	Result Parse( const char* json_text, size_t json_text_length );
 
+	void ResetCaches();
+
 private:
 	const ValueBase* Parse_r(); // Can set error flag.
 	StringType ParseString(); // Can set error flag.
@@ -48,6 +50,15 @@ private:
 	Result result_;
 
 	std::vector<unsigned char> number_digits_;
+
+	// Cache for small vectors for accumulating of array/object values.
+	static constexpr size_t c_vectors_cache_size_= 8u;
+	std::vector<const ValueBase*> array_elements_[ c_vectors_cache_size_ ];
+	std::vector<ObjectValue::ObjectEntry> object_elements_[ c_vectors_cache_size_ ];
+	// Incretent counters while parsing object or array, decrement when parsing was done.
+	// Left unchenged on error.
+	size_t array_level_= 0u;
+	size_t object_level_= 0u;
 };
 
 } // namespace PanzerJson

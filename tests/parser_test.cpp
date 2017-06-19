@@ -390,6 +390,34 @@ static void ComplexStrigParseTest()
 	test_assert( std::strcmp( result.root.AsString(), u8"ö  Ö  да---\n next line \t\t \\  \r" ) == 0 );
 }
 
+static void DepthHierarchyTest()
+{
+	static const char json_text[]=
+	u8R"(
+		{
+			"a" : 42,
+			"megaarray" :
+			[[[[[[[[[[[[[[[
+			{
+				"c" : {},
+				"d" : "wtf",
+				"megaobject" :
+				{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{
+					"foo" : "foo",
+					"bar" : "bar"
+				}}}}}}}}}}}}}}}}}}}}}}
+			}
+			]]]]]]]]]]]]]]]
+
+		}
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+
+	test_assert( result.error == Parser::Result::Error::NoError );
+	test_assert( result.root.GetType() == ValueBase::Type::Object );
+}
+
 void RunParserTests()
 {
 	SimpleObjectParseTest();
@@ -423,4 +451,5 @@ void RunParserTests()
 	ComplexObjectParseTest();
 	ComplexArrayParseTest();
 	ComplexStrigParseTest();
+	DepthHierarchyTest();
 }
