@@ -36,6 +36,7 @@ QMAKE_EXTRA_COMPILERS+= BuildConvertedJson
 
 JSON_TESTS+= \
 	../tests/test_jsons/complex_object.json \
+	../tests/test_jsons/int_convert_test.json \
 	../tests/test_jsons/simple_object.json \
 	../tests/test_jsons/sort_test.json \
 	../tests/test_jsons/utf8_test.json \

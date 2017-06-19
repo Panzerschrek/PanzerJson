@@ -26,6 +26,28 @@ def NextCounter():
 def Stringify( something ):
 	return "\"" + str(something) + "\""
 
+def PrepareIntValue( int_value ):
+
+	int_value = int(int_value)
+
+	# Clamp to common range of int64_t and uint64_t
+	if int_value > 0xFFFFFFFFFFFFFFFF:
+		int_value= 0xFFFFFFFFFFFFFFFF
+	elif int_value < -0x8000000000000000:
+		int_value=   -0x8000000000000000
+
+	# Convert big unsigned value to int64_t
+	if int_value >  0x7FFFFFFFFFFFFFFF:
+		int_value= int_value - 0x10000000000000000
+
+	# Hack for most negative value.
+	if int_value == -0x8000000000000000:
+		return "0x8000000000000000ll"
+
+	# Finally, convert to string
+	return str(int_value) + "ll"
+
+
 #produce valid c++ string literal
 def MakeQuotedEscapedString( s ):
 	result= "u8\""
@@ -96,11 +118,11 @@ def WritePanzerJsonValue( json_struct ):
 
 	if type(json_struct) is int:
 		var_name= "number_value" + NextCounter()
-		return [ "constexpr NumberValue " + var_name + "(" + Stringify(json_struct) + ", " + str(json_struct) + ", " + str(json_struct) + ".0" + ");\n\n", var_name ]
+		return [ "constexpr NumberValue " + var_name + "(" + Stringify(json_struct) + ", " + PrepareIntValue(json_struct) + ", " + str(json_struct) + ".0" + ");\n\n", var_name ]
 
 	if type(json_struct) is float:
 		var_name= "number_value" + NextCounter()
-		return [ "constexpr NumberValue " + var_name + "(" + Stringify(json_struct) + ", " + str(int(json_struct)) + ", " + str(json_struct) + ");\n\n", var_name ]
+		return [ "constexpr NumberValue " + var_name + "(" + Stringify(json_struct) + ", " + PrepareIntValue(json_struct) + ", " + str(json_struct) + ");\n\n", var_name ]
 
 	if type(json_struct) is bool:
 		var_name= "bool_value" + NextCounter()
