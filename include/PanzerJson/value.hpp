@@ -53,25 +53,25 @@ struct ObjectValue final : public ValueBase
 	};
 
 	// WARNING! SubObjects must be sorted by key.
+	uint32_t object_count;
 	const ObjectEntry* sub_objects;
-	size_t object_count;
 
-	constexpr ObjectValue( const ObjectEntry* const in_sub_objects, const size_t in_object_count ) noexcept
+	constexpr ObjectValue( const ObjectEntry* const in_sub_objects, const uint32_t in_object_count ) noexcept
 		: ValueBase(Type::Object)
-		, sub_objects(in_sub_objects)
 		, object_count(in_object_count)
+		, sub_objects(in_sub_objects)
 	{}
 };
 
 struct ArrayValue final : public ValueBase
 {
+	uint32_t object_count;
 	const ValueBase* const* objects;
-	size_t object_count;
 
-	constexpr ArrayValue( const ValueBase* const* const in_objects, const size_t in_object_count ) noexcept
+	constexpr ArrayValue( const ValueBase* const* const in_objects, const uint32_t in_object_count ) noexcept
 		: ValueBase(Type::Array)
-		, objects(in_objects)
 		, object_count(in_object_count)
+		, objects(in_objects)
 	{}
 };
 

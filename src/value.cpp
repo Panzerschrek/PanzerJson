@@ -5,6 +5,40 @@
 namespace PanzerJson
 {
 
+// Some usable static_asserts
+
+namespace StaticAsserts
+{
+
+constexpr bool is64bit= sizeof(void*) > 4u;
+constexpr size_t ptr_size= sizeof(void*);
+
+static_assert(
+	sizeof(NullValue) <= sizeof(int32_t), // enum value
+	"NullValue expected to be smaller");
+
+static_assert(
+	sizeof(ObjectValue) <= ( is64bit ? ( ptr_size * 2u ) : ( sizeof(int32_t) * 2u + ptr_size ) ), // enum value + uint32 + ptr
+	"ObjectValue expected to be smaller");
+
+static_assert(
+	sizeof(ArrayValue ) <= ( is64bit ? ( ptr_size * 2u ) : ( sizeof(int32_t) * 2u + ptr_size ) ), // enum value + uint32 + ptr
+	"Array expected to be smaller");
+
+static_assert(
+	sizeof(StringValue) <= ptr_size * 2u, // enum value + ptr
+	"StringValue expected to be smaller");
+
+static_assert(
+	sizeof(NumberValue) <= ( is64bit ? ( 2u * ptr_size + 2u * sizeof(int64_t) ) : ( sizeof(int32_t) + ptr_size + 2u * sizeof(int64_t) ) ), // enum value + ptr + int64 + int64
+	"NumberValue expected to be smaller");
+
+static_assert(
+	sizeof(BoolValue) <= sizeof(int32_t) * 2u, // enum value + bool
+	"BoolValue expected to be smaller");
+
+}
+
 static constexpr NullValue g_null_value_content;
 static const Value g_null_value( & g_null_value_content );
 
