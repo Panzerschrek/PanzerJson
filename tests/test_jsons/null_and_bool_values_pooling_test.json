@@ -1,0 +1,46 @@
+{
+    "a" : 42,
+    "b" : false,
+    "c" :
+    {
+        "null is null" : null,
+        "same null" : null
+    },
+    "arr" :
+    [
+        false,
+        true,
+        false,
+        false,
+        true,
+        {
+            "trueee" : true,
+            "falseee" : false,
+            "nulllll" : null
+        }
+    ],
+    "just another null" : null,
+    "some bools and nulls" :
+    [
+        false,
+        true,
+        true,
+        true,
+        true,
+        false,
+        true,
+        null,
+        false,
+        true,
+        null,
+        null,
+        null,
+        false,
+        null,
+        true,
+        null
+    ],
+    "and more0" : false,
+    "and more1" : true,
+    "and more2" : null
+}

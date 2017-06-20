@@ -23,8 +23,10 @@ def NextCounter():
 	named_values_counter= named_values_counter + 1
 	return str(named_values_counter)
 
+
 def Stringify( something ):
 	return "\"" + str(something) + "\""
+
 
 def PrepareIntValue( int_value ):
 
@@ -75,7 +77,12 @@ def MakeQuotedEscapedString( s ):
 	result= result + "\""
 	return result
 
-
+# Global flags for values pooling.
+# TODO - add pooling for zero and other small integer values.
+# TODO - try to add pooling for all values.
+null_value_emitted= False
+false_bool_value_emitted= False
+true_bool_value_emitted = False
 
 # Returns pair of strings.
 # First string - preinitializers, second string - name.
@@ -125,12 +132,36 @@ def WritePanzerJsonValue( json_struct ):
 		return [ "constexpr NumberValue " + var_name + "(" + Stringify(json_struct) + ", " + PrepareIntValue(json_struct) + ", " + str(json_struct) + ");\n\n", var_name ]
 
 	if type(json_struct) is bool:
-		var_name= "bool_value" + NextCounter()
-		return [ "constexpr BoolValue " + var_name + "(" + str(json_struct).lower() + ");\n\n", var_name ]
+		global false_bool_value_emitted
+		global true_bool_value_emitted
+		#Emit both bool values once.
+
+		if bool(json_struct):
+			var_name= "bool_value_true"
+			if true_bool_value_emitted:
+				return [ "", var_name ]
+			else:
+				true_bool_value_emitted= True
+				return [ "constexpr BoolValue " + var_name + "(" + str(json_struct).lower() + ");\n\n", var_name ]
+		else:
+			var_name= "bool_value_false"
+			if false_bool_value_emitted:
+				return [ "", var_name ]
+			else:
+				false_bool_value_emitted= True
+				return [ "constexpr BoolValue " + var_name + "(" + str(json_struct).lower() + ");\n\n", var_name ]
+
 
 	if json_struct is None:
-		var_name= "null_value" + NextCounter()
-		return [ "constexpr NullValue " + var_name + ";\n\n", var_name ]
+		#Emit null value once, because all null values are same.
+		global null_value_emitted
+
+		var_name= "null_value"
+		if null_value_emitted:
+			return [ "", var_name ]
+		else:
+			null_value_emitted= True
+			return [ "constexpr NullValue " + var_name + ";\n\n", var_name ]
 
 	return [ "", "" ]
 

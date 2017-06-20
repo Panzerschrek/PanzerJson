@@ -40,3 +40,4 @@ JSON_TESTS+= \
 	../tests/test_jsons/simple_object.json \
 	../tests/test_jsons/sort_test.json \
 	../tests/test_jsons/utf8_test.json \
+	../tests/test_jsons/null_and_bool_values_pooling_test.json \
