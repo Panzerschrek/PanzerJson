@@ -1,0 +1,32 @@
+{
+    "Zero value0" : 0,
+    "subobject0" :
+    {
+        "Zero value1" : 0.0,
+        "Zero value2" : -0,
+        "subarray" :
+        [
+            "Zero value3",
+            -0.0
+        ]
+    },
+    "Zero value4" : 0.0000,
+    "Zero value5" : -0.0000,
+    "Zero value6" : 0e45,
+    "subobject1" :
+    {
+        "Zero value7" : 0e-45,
+        "subobjecT":
+        {
+            "five0" : 5,
+            "SubobjecT":
+            {
+                "five1" : 5.0,
+                "large0" : 1.468548548e148
+            },
+            "large1" : 1.468548548e148
+        }
+    },
+    "large_large0" : 4621686018527381904,
+    "large_large1" : 4621686018527381904
+}

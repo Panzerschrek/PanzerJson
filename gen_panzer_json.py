@@ -78,11 +78,12 @@ def MakeQuotedEscapedString( s ):
 	return result
 
 # Global flags for values pooling.
-# TODO - add pooling for zero and other small integer values.
+# TODO - add pooling for strings.
 # TODO - try to add pooling for all values.
 null_value_emitted= False
 false_bool_value_emitted= False
 true_bool_value_emitted = False
+number_values_pool= dict()
 
 # Returns pair of strings.
 # First string - preinitializers, second string - name.
@@ -123,13 +124,18 @@ def WritePanzerJsonValue( json_struct ):
 		var_name= "string_value" + NextCounter()
 		return [ "constexpr StringValue " + var_name + "(" + MakeQuotedEscapedString(json_struct) + ");\n\n", var_name ]
 
-	if type(json_struct) is int:
-		var_name= "number_value" + NextCounter()
-		return [ "constexpr NumberValue " + var_name + "(" + Stringify(json_struct) + ", " + PrepareIntValue(json_struct) + ", " + str(json_struct) + ".0" + ");\n\n", var_name ]
-
-	if type(json_struct) is float:
-		var_name= "number_value" + NextCounter()
-		return [ "constexpr NumberValue " + var_name + "(" + Stringify(json_struct) + ", " + PrepareIntValue(json_struct) + ", " + str(json_struct) + ");\n\n", var_name ]
+	if type(json_struct) is int or type(json_struct) is float:
+		# Use numbers pooling - emit same value once
+		global number_values_pool
+		# Make combined key - for value as int and float. Because, we can lost precision, if we will use only int or float keys.
+		pool_key = str(float(json_struct)) + "___" + str(int(json_struct))
+		pool_value = number_values_pool.get( pool_key, None )
+		if pool_value is None:
+			var_name= "number_value" + NextCounter()
+			number_values_pool[ pool_key ]= var_name
+			return [ "constexpr NumberValue " + var_name + "(" + Stringify(json_struct) + ", " + PrepareIntValue(json_struct) + ", " + str(float(json_struct)) + ");\n\n", var_name ]
+		else:
+			return [ "", pool_value ]
 
 	if type(json_struct) is bool:
 		global false_bool_value_emitted
