@@ -1,0 +1,25 @@
+{
+    "bar" : "bar",
+    "baz" : "Baz",
+    "bazz" : "bar",
+    "object" :
+    {
+        "0" : "bar",
+        "1" : "one",
+        "utf-8" :
+        {
+            "something" : "Чё-то",
+            "SS" : "ß",
+            "Welcome" : "Baz",
+            "arr":
+            [
+                "bar",
+                "Baz",
+                "Чё-то"
+            ]
+        }
+    },
+    "oneeee" : "one",
+    "ß" : "ß"
+
+}
