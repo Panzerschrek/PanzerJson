@@ -216,6 +216,54 @@ static void UnexpectedLexemTestArray1()
 	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
 }
 
+static void UnexpectedLexemTestNumber0()
+{
+	// Unexpected ".".
+	static const char json_text[]=
+	u8R"(
+			[ 568.. ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestNumber1()
+{
+	// Unexpected "something" after "e".
+	static const char json_text[]=
+	u8R"(
+			[ 568e. ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestNumber2()
+{
+	// Unexpected "something" after "-".
+	static const char json_text[]=
+	u8R"(
+			[ -a56 ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestNumber3()
+{
+	// Redunant leading zero.
+	static const char json_text[]=
+	u8R"(
+			[ 0547 ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
 void RunParserErrorsTests()
 {
 	UnexpectedEndOfFileTestObject0();
@@ -238,4 +286,8 @@ void RunParserErrorsTests()
 	UnexpectedLexemTestObject4();
 	UnexpectedLexemTestArray0();
 	UnexpectedLexemTestArray1();
+	UnexpectedLexemTestNumber0();
+	UnexpectedLexemTestNumber1();
+	UnexpectedLexemTestNumber2();
+	UnexpectedLexemTestNumber3();
 }
