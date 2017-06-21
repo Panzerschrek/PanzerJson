@@ -17,6 +17,7 @@ public:
 		{
 			NoError,
 			UnexpectedLexem,
+			ControlCharacterInsideString,
 			UnexpectedEndOfFile,
 			ExtraCharactersAfterJsonRoot,
 			RootIsNotObjectOrArray,

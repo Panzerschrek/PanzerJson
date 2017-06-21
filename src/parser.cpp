@@ -587,6 +587,14 @@ StringType Parser::ParseString()
 		}
 		else
 		{
+			// Check, if control character.
+			// TODO - maybe change this criteria?
+			if( ( *cur_ >= 0x00 && *cur_ < 0x20 ) || *cur_ == 0x7f )
+			{
+				result_.error= Result::Error::ControlCharacterInsideString;
+				return nullptr;
+			}
+
 			result_.storage.push_back( static_cast<unsigned char>(*cur_) );
 			++cur_;
 		}

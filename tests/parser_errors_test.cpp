@@ -60,10 +60,7 @@ static void UnexpectedEndOfFileTestArray1()
 static void UnexpectedEndOfFileTestString0()
 {
 	// End of file in string.
-	static const char json_text[]=
-	u8R"(
-			"str
-		)";
+	static const char json_text[]= "\"str";
 
 	const Parser::Result result= Parser().Parse( json_text );
 	test_assert(result.error == Parser::Result::Error::UnexpectedEndOfFile );
@@ -454,6 +451,51 @@ static void UnexpectedSomething5()
 	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
 }
 
+static void ControlCharacterInsideStringTest0()
+{
+	// \n
+	static const char json_text[]= "[\"str\n\"]";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::ControlCharacterInsideString );
+}
+
+static void ControlCharacterInsideStringTest1()
+{
+	// \t
+	static const char json_text[]= "[\"str\t\"]";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::ControlCharacterInsideString );
+}
+
+static void ControlCharacterInsideStringTest2()
+{
+	// \b
+	static const char json_text[]= "[\"str\b\"]";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::ControlCharacterInsideString );
+}
+
+static void ControlCharacterInsideStringTest3()
+{
+	// \r
+	static const char json_text[]= "[\"str\r\"]";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::ControlCharacterInsideString );
+}
+
+static void ControlCharacterInsideStringTest4()
+{
+	// \f
+	static const char json_text[]= "[\"str\f\"]";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::ControlCharacterInsideString );
+}
+
 void RunParserErrorsTests()
 {
 	UnexpectedEndOfFileTestObject0();
@@ -496,4 +538,9 @@ void RunParserErrorsTests()
 	UnexpectedSomething3();
 	UnexpectedSomething4();
 	UnexpectedSomething5();
+	ControlCharacterInsideStringTest0();
+	ControlCharacterInsideStringTest1();
+	ControlCharacterInsideStringTest2();
+	ControlCharacterInsideStringTest3();
+	ControlCharacterInsideStringTest4();
 }
