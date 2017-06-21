@@ -249,7 +249,14 @@ const ValueBase* Parser::Parse_r()
 				is_negative= true;
 			}
 
-			extract_digits(); // Integer part.
+			// Integer part.
+			if ( *cur_ == '0')
+			{
+				// If leading digit is 0, than number contains no other integer part digits.
+				++cur_;
+			}
+			else
+				extract_digits();
 			int64_t decimal_point_pos= number_digits_.size();
 
 			if( cur_ == end_ )

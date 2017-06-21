@@ -234,7 +234,7 @@ static void ZeroNumberParseTest1()
 
 static void ZeroNumberParseTest2()
 {
-	static const char json_text[]= "0000.0000"; // Surplus '0' zero
+	static const char json_text[]= "0.0000"; // Surplus '0' zero
 
 	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
 
@@ -324,7 +324,7 @@ static void ZeroLeadingDoubleParseTest2()
 
 static void ZeroLeadingDoubleParseTest3()
 {
-	static const char json_text[]= "000000000005467582475765";
+	static const char json_text[]= "5467582475765";
 
 	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
 
