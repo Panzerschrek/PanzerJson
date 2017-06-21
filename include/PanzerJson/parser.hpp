@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <vector>
 
 #include "../PanzerJson/value.hpp"
@@ -11,7 +12,13 @@ class Parser final
 public:
 	typedef std::vector<unsigned char> DataStorage;
 
-	struct Result
+	// Parse result.
+	// If JSON parsed successfully, ResultPtr returned with "Value" and associated internal storage.
+	// "root", it copies and derived values must live no longer, than returned from parser "ResultPtr",
+	// because all data pointed to this storage.
+
+	// Result is noncopyable, so, one way to "copy" it - use shared pointers.
+	struct Result final
 	{
 		enum class Error
 		{
@@ -23,19 +30,32 @@ public:
 			RootIsNotObjectOrArray,
 		};
 
-		Error error;
-		size_t error_pos;
+		Error error= Error::NoError;
+		size_t error_pos= 0u;
 
 		Value root;
+
+		Result()= default;
+
+	private:
+		friend class Parser;
+		Result& operator=( const Result& )= delete;
+		Result( const Result& )= delete;
+
 		DataStorage storage;
 	};
+
+	typedef std::unique_ptr<const Result> ResultPtr;
+	typedef std::shared_ptr<const Result> ResultSharedPtr;
 
 public:
 	Parser();
 	~Parser();
 
-	Result Parse( const char* json_text_null_teriminated );
-	Result Parse( const char* json_text, size_t json_text_length );
+	// Returns pointer to result.
+	// Never returns nullptr.
+	ResultPtr Parse( const char* json_text_null_teriminated );
+	ResultPtr Parse( const char* json_text, size_t json_text_length );
 
 	// Enable json root to be not only array or object.
 	void SetEnableNoncompositeJsonRoot( bool enable );

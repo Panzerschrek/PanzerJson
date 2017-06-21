@@ -704,12 +704,12 @@ StringType Parser::CorrectStringPointer( const StringType str )
 	return reinterpret_cast<const char*>( offset + result_.storage.data() );
 }
 
-Parser::Result Parser::Parse( const char* const json_text_null_teriminated )
+Parser::ResultPtr Parser::Parse( const char* const json_text_null_teriminated )
 {
 	return Parse( json_text_null_teriminated, size_t(std::strlen(json_text_null_teriminated)) );
 }
 
-Parser::Result Parser::Parse( const char* const json_text, const size_t json_text_length )
+Parser::ResultPtr Parser::Parse( const char* const json_text, const size_t json_text_length )
 {
 	start_= json_text;
 	end_= json_text + json_text_length;
@@ -752,7 +752,13 @@ Parser::Result Parser::Parse( const char* const json_text, const size_t json_tex
 		result_.root= Value();
 	}
 
-	return std::move(result_);
+	std::unique_ptr<Result> result( new Result );
+	result->error= result_.error;
+	result->error_pos= result_.error_pos;
+	result->root= result_.root;
+	result->storage= std::move( result_.storage );
+
+	return std::move(result);
 }
 
 void Parser::SetEnableNoncompositeJsonRoot( const bool enable )

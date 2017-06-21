@@ -8,8 +8,8 @@ static void UnexpectedEndOfFileTestObject0()
 	// End of file in object.
 	static const char json_text[]= "{  ";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedEndOfFile );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
 }
 
 static void UnexpectedEndOfFileTestObject1()
@@ -20,8 +20,8 @@ static void UnexpectedEndOfFileTestObject1()
 			{ "foo" : "bar",
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedEndOfFile );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
 }
 
 static void UnexpectedEndOfFileTestObject2()
@@ -32,8 +32,8 @@ static void UnexpectedEndOfFileTestObject2()
 			{ "foo" : "br", "baz" :
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedEndOfFile );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
 }
 
 static void UnexpectedEndOfFileTestArray0()
@@ -41,8 +41,8 @@ static void UnexpectedEndOfFileTestArray0()
 	// End of file in array.
 	static const char json_text[]= "[  ";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedEndOfFile );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
 }
 
 static void UnexpectedEndOfFileTestArray1()
@@ -53,8 +53,8 @@ static void UnexpectedEndOfFileTestArray1()
 			[ "bar",
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedEndOfFile );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
 }
 
 static void UnexpectedEndOfFileTestString0()
@@ -62,8 +62,8 @@ static void UnexpectedEndOfFileTestString0()
 	// End of file in string.
 	static const char json_text[]= "\"str";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedEndOfFile );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
 }
 
 static void UnexpectedEndOfFileTestString1()
@@ -71,8 +71,8 @@ static void UnexpectedEndOfFileTestString1()
 	// End of file in string after "\".
 	static const char json_text[]= "\"str\\";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedEndOfFile );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
 }
 
 static void UnexpectedEndOfFileTestNumber0()
@@ -80,8 +80,8 @@ static void UnexpectedEndOfFileTestNumber0()
 	// End of file in number - after fractional point.
 	static const char json_text[]= "{\"num\" : 4.";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedEndOfFile );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
 }
 
 static void UnexpectedEndOfFileTestNumber1()
@@ -89,8 +89,8 @@ static void UnexpectedEndOfFileTestNumber1()
 	// End of file in number - after "-".
 	static const char json_text[]= "{\"num\" : -";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedEndOfFile );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
 }
 
 static void UnexpectedEndOfFileTestNumber2()
@@ -98,8 +98,8 @@ static void UnexpectedEndOfFileTestNumber2()
 	// End of file in number - after "e".
 	static const char json_text[]= "{\"num\" : 42e";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedEndOfFile );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
 }
 
 static void UnexpectedEndOfFileTestNull()
@@ -107,8 +107,8 @@ static void UnexpectedEndOfFileTestNull()
 	// End of file in null.
 	static const char json_text[]= "{\"val\" : nu";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedEndOfFile );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
 }
 
 static void UnexpectedEndOfFileTestTrue()
@@ -116,8 +116,8 @@ static void UnexpectedEndOfFileTestTrue()
 	// End of file in true.
 	static const char json_text[]= "{\"val\" : tru";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedEndOfFile );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
 }
 
 static void UnexpectedEndOfFileTestFalse()
@@ -125,8 +125,8 @@ static void UnexpectedEndOfFileTestFalse()
 	// End of file in false.
 	static const char json_text[]= "{\"val\" : f";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedEndOfFile );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
 }
 
 static void UnexpectedLexemTestObject0()
@@ -137,8 +137,8 @@ static void UnexpectedLexemTestObject0()
 			{ "foo" , }
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestObject1()
@@ -149,8 +149,8 @@ static void UnexpectedLexemTestObject1()
 			{ "foo" : "bar" , }
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestObject2()
@@ -161,8 +161,8 @@ static void UnexpectedLexemTestObject2()
 			{ "foo" : "baz" 42 }
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestObject3()
@@ -173,8 +173,8 @@ static void UnexpectedLexemTestObject3()
 			{ "foo" :  }
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestObject4()
@@ -185,8 +185,8 @@ static void UnexpectedLexemTestObject4()
 			{ "foo"  }
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestObject5()
@@ -197,8 +197,8 @@ static void UnexpectedLexemTestObject5()
 			{ non_string_key  }
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestArray0()
@@ -209,8 +209,8 @@ static void UnexpectedLexemTestArray0()
 			[ "foo" , ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestArray1()
@@ -221,8 +221,8 @@ static void UnexpectedLexemTestArray1()
 			[ "foo" ,, "bar" ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestNumber0()
@@ -233,8 +233,8 @@ static void UnexpectedLexemTestNumber0()
 			[ 568.. ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestNumber1()
@@ -245,8 +245,8 @@ static void UnexpectedLexemTestNumber1()
 			[ 568e. ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestNumber2()
@@ -257,8 +257,8 @@ static void UnexpectedLexemTestNumber2()
 			[ -a56 ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestNumber3()
@@ -269,8 +269,8 @@ static void UnexpectedLexemTestNumber3()
 			[ 0547 ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestString0()
@@ -281,8 +281,8 @@ static void UnexpectedLexemTestString0()
 			[ "string\Ütr" ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestBool0()
@@ -293,8 +293,8 @@ static void UnexpectedLexemTestBool0()
 			[ trur ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestBool1()
@@ -305,8 +305,8 @@ static void UnexpectedLexemTestBool1()
 			[ tttt ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestBool2()
@@ -317,8 +317,8 @@ static void UnexpectedLexemTestBool2()
 			[ flase ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestBool3()
@@ -329,8 +329,8 @@ static void UnexpectedLexemTestBool3()
 			[ f, 0, 0, 0 ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestBool4()
@@ -341,8 +341,8 @@ static void UnexpectedLexemTestBool4()
 			[ fal ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestNull0()
@@ -353,8 +353,8 @@ static void UnexpectedLexemTestNull0()
 			[ n, 0, 0 ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestNull1()
@@ -365,8 +365,8 @@ static void UnexpectedLexemTestNull1()
 			[ nul ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedLexemTestNull2()
@@ -377,8 +377,8 @@ static void UnexpectedLexemTestNull2()
 			[ nuul ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedSomething0()
@@ -388,8 +388,8 @@ static void UnexpectedSomething0()
 			[ whath_is_shis? ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedSomething1()
@@ -399,8 +399,8 @@ static void UnexpectedSomething1()
 			[ ? ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedSomething2()
@@ -411,8 +411,8 @@ static void UnexpectedSomething2()
 			[ Null ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedSomething3()
@@ -423,8 +423,8 @@ static void UnexpectedSomething3()
 			[ True ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedSomething4()
@@ -435,8 +435,8 @@ static void UnexpectedSomething4()
 			[ False ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void UnexpectedSomething5()
@@ -447,8 +447,8 @@ static void UnexpectedSomething5()
 			[ <body> / <body> ]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
 static void ControlCharacterInsideStringTest0()
@@ -456,8 +456,8 @@ static void ControlCharacterInsideStringTest0()
 	// \n
 	static const char json_text[]= "[\"str\n\"]";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::ControlCharacterInsideString );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::ControlCharacterInsideString );
 }
 
 static void ControlCharacterInsideStringTest1()
@@ -465,8 +465,8 @@ static void ControlCharacterInsideStringTest1()
 	// \t
 	static const char json_text[]= "[\"str\t\"]";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::ControlCharacterInsideString );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::ControlCharacterInsideString );
 }
 
 static void ControlCharacterInsideStringTest2()
@@ -474,8 +474,8 @@ static void ControlCharacterInsideStringTest2()
 	// \b
 	static const char json_text[]= "[\"str\b\"]";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::ControlCharacterInsideString );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::ControlCharacterInsideString );
 }
 
 static void ControlCharacterInsideStringTest3()
@@ -483,8 +483,8 @@ static void ControlCharacterInsideStringTest3()
 	// \r
 	static const char json_text[]= "[\"str\r\"]";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::ControlCharacterInsideString );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::ControlCharacterInsideString );
 }
 
 static void ControlCharacterInsideStringTest4()
@@ -492,8 +492,8 @@ static void ControlCharacterInsideStringTest4()
 	// \f
 	static const char json_text[]= "[\"str\f\"]";
 
-	const Parser::Result result= Parser().Parse( json_text );
-	test_assert(result.error == Parser::Result::Error::ControlCharacterInsideString );
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::ControlCharacterInsideString );
 }
 
 void RunParserErrorsTests()
