@@ -51,13 +51,20 @@ const ValueBase* Parser::Parse_r()
 
 		const size_t object_entries_stack_pos= object_entries_stack_.size();
 
-		while(true)
+		if( *cur_ == '}' )
+			++cur_;
+		else
 		{
-			SkipWhitespaces();
-			if( result_.error != Result::Error::NoError )
-				return nullptr;
-			if( *cur_ == '"' )
+			while(true)
 			{
+				SkipWhitespaces();
+				if( result_.error != Result::Error::NoError )
+					return nullptr;
+				if( *cur_ != '"' )
+				{
+					result_.error= Result::Error::UnexpectedLexem;
+					return nullptr;
+				}
 				const StringType key= ParseString();
 				if( result_.error != Result::Error::NoError )
 					return nullptr;
@@ -86,21 +93,22 @@ const ValueBase* Parser::Parse_r()
 					result_.error= Result::Error::UnexpectedEndOfFile;
 					return nullptr;
 				}
+
 				if( *cur_ == ',' )
 				{
 					++cur_;
 					continue;
 				}
-			}
-			else if( *cur_ == '}' )
-			{
-				++cur_;
-				break;
-			}
-			else
-			{
-				result_.error= Result::Error::UnexpectedLexem;
-				return nullptr;
+				else if( *cur_ == '}' )
+				{
+					++cur_;
+					break;
+				}
+				else
+				{
+					result_.error= Result::Error::UnexpectedLexem;
+					return nullptr;
+				}
 			}
 		}
 
@@ -138,18 +146,18 @@ const ValueBase* Parser::Parse_r()
 
 		const size_t array_elements_stack_pos= array_elements_stack_.size();
 
-		while(true)
+		if( *cur_ == ']' )
 		{
-			SkipWhitespaces();
-			if( result_.error != Result::Error::NoError )
-				return nullptr;
-			if( *cur_ == ']' )
+			++cur_;
+		}
+		else
+		{
+			while(true)
 			{
-				++cur_;
-				break;
-			}
-			else
-			{
+				SkipWhitespaces();
+				if( result_.error != Result::Error::NoError )
+					return nullptr;
+
 				const ValueBase* const value= Parse_r();
 				if( result_.error != Result::Error::NoError )
 					return nullptr;
@@ -164,8 +172,18 @@ const ValueBase* Parser::Parse_r()
 					++cur_;
 					continue;
 				}
-			}
-		} // while true
+				else if( *cur_ == ']' )
+				{
+					++cur_;
+					break;
+				}
+				else
+				{
+					result_.error= Result::Error::UnexpectedLexem;
+					return nullptr;
+				}
+			} // while true
+		}
 
 		const size_t array_element_count= array_elements_stack_.size() - array_elements_stack_pos;
 

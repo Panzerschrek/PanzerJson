@@ -132,6 +132,90 @@ static void UnexpectedEndOfFileTestFalse()
 	test_assert(result.error == Parser::Result::Error::UnexpectedEndOfFile );
 }
 
+static void UnexpectedLexemTestObject0()
+{
+	// Expected ":".
+	static const char json_text[]=
+	u8R"(
+			{ "foo" , }
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestObject1()
+{
+	// Expected something after ","
+	static const char json_text[]=
+	u8R"(
+			{ "foo" : "bar" , }
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestObject2()
+{
+	// Expected "," or "}"
+	static const char json_text[]=
+	u8R"(
+			{ "foo" : "baz" 42 }
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestObject3()
+{
+	// Expected "something", got "}"
+	static const char json_text[]=
+	u8R"(
+			{ "foo" :  }
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestObject4()
+{
+	// Expected ":", got "}"
+	static const char json_text[]=
+	u8R"(
+			{ "foo"  }
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestArray0()
+{
+	// Unexpected ",".
+	static const char json_text[]=
+	u8R"(
+			[ "foo" , ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestArray1()
+{
+	// Duplicated ",".
+	static const char json_text[]=
+	u8R"(
+			[ "foo" ,, "bar" ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
 void RunParserErrorsTests()
 {
 	UnexpectedEndOfFileTestObject0();
@@ -147,4 +231,11 @@ void RunParserErrorsTests()
 	UnexpectedEndOfFileTestNull();
 	UnexpectedEndOfFileTestTrue();
 	UnexpectedEndOfFileTestFalse();
+	UnexpectedLexemTestObject0();
+	UnexpectedLexemTestObject1();
+	UnexpectedLexemTestObject2();
+	UnexpectedLexemTestObject3();
+	UnexpectedLexemTestObject4();
+	UnexpectedLexemTestArray0();
+	UnexpectedLexemTestArray1();
 }

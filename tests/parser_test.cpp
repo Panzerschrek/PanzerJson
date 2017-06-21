@@ -492,10 +492,10 @@ static void DepthHierarchyTest2()
 						"str"
 					],
 					"some",
-					568131819,
+					568131819
 				],
 				"24",
-				"SpongeBob",
+				"SpongeBob"
 			]
 	)";
 
