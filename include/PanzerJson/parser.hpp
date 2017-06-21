@@ -19,6 +19,7 @@ public:
 			UnexpectedLexem,
 			UnexpectedEndOfFile,
 			ExtraCharactersAfterJsonRoot,
+			RootIsNotObjectOrArray,
 		};
 
 		Error error;
@@ -34,6 +35,10 @@ public:
 
 	Result Parse( const char* json_text_null_teriminated );
 	Result Parse( const char* json_text, size_t json_text_length );
+
+	// Enable json root to be not only array or object.
+	void SetEnableNoncompositeJsonRoot( bool enable );
+	bool GetEnableNoncompositeJsonRoot() const;
 
 	void ResetCaches();
 
@@ -51,6 +56,8 @@ private:
 	const char* end_;
 	const char* cur_;
 	Result result_;
+
+	bool enable_noncomposite_json_root_= true;
 
 	std::vector<unsigned char> number_digits_;
 

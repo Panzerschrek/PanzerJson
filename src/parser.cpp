@@ -682,6 +682,8 @@ Parser::Result Parser::Parse( const char* const json_text, const size_t json_tex
 	object_entries_stack_.clear();
 
 	const ValueBase* root= Parse_r();
+	bool all_ok= false;
+
 	if( result_.error == Result::Error::NoError )
 	{
 		SkipWhitespacesAtEnd();
@@ -690,23 +692,36 @@ Parser::Result Parser::Parse( const char* const json_text, const size_t json_tex
 			const size_t offset=
 				reinterpret_cast<const unsigned char*>(root) - static_cast<const unsigned char*>(nullptr);
 			root= reinterpret_cast<const ValueBase*>( offset + result_.storage.data() );
-
 			CorrectPointers_r( const_cast<ValueBase&>(*root) );
-			result_.root= Value( root );
-		}
-		else
-		{
-			result_.error_pos= cur_ - start_;
-			result_.root= Value();
+
+			if( enable_noncomposite_json_root_ ||
+				root->type == ValueBase::Type::Array || root->type == ValueBase::Type::Object )
+			{
+				result_.root= Value( root );
+				all_ok= true;
+			}
+			else
+				result_.error= Result::Error::RootIsNotObjectOrArray;
 		}
 	}
-	else
+
+	if( !all_ok )
 	{
 		result_.error_pos= cur_ - start_;
 		result_.root= Value();
 	}
 
 	return std::move(result_);
+}
+
+void Parser::SetEnableNoncompositeJsonRoot( const bool enable )
+{
+	enable_noncomposite_json_root_= enable;
+}
+
+bool Parser::GetEnableNoncompositeJsonRoot() const
+{
+	return enable_noncomposite_json_root_;
 }
 
 void Parser::ResetCaches()
