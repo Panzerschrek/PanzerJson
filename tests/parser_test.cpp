@@ -10,7 +10,7 @@ static void SimpleObjectParseTest()
 {
 	static const char json_text[]= "{}";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Object );
@@ -21,7 +21,7 @@ static void SimpleArrayParseTest()
 {
 	static const char json_text[]= "[]";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Array );
@@ -32,7 +32,7 @@ static void SimpleStringParseTest()
 {
 	static const char json_text[]= u8"\"Ü\"";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::String );
@@ -43,7 +43,7 @@ static void SimpleNumberParseTest()
 {
 	static const char json_text[]= "88667";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -54,7 +54,7 @@ static void SimpleNegativeNumberParseTest()
 {
 	static const char json_text[]= "-886600";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -65,7 +65,7 @@ static void LongIntegerParseTest()
 {
 	static const char json_text[]= "7652154277405721596"; // Integer with 64bit width.
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -77,7 +77,7 @@ static void OverflowingIntegerParseTest0()
 	// Overflowing value must be clamped to limit.
 	static const char json_text[]= "1e56";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -90,7 +90,7 @@ static void OverflowingIntegerParseTest1()
 	// Overflowing value must be clamped to limit.
 	static const char json_text[]= "-1e56";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -103,7 +103,7 @@ static void OverflowingIntegerParseTest2()
 	// Overflowing value must be clamped to limit.
 	static const char json_text[]= "1564578545525637437852786578527857852782782814522742828";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -116,7 +116,7 @@ static void OverflowingIntegerParseTest3()
 	// Overflowing value must be clamped to limit.
 	static const char json_text[]= "-1564578545525637437852786578527857852782782814522742828";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -128,7 +128,7 @@ static void LongNegativeIntegerParseTest()
 {
 	static const char json_text[]= "-8652144277705421598"; // Negative integer with 64bit width.
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -139,7 +139,7 @@ static void LongExponentialIntegerTest()
 {
 	static const char json_text[]= "5e18";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -151,7 +151,7 @@ static void PositiveExponentialNumberTest()
 	// Should preserve fractional part in integer.
 	static const char json_text[]= "54.76e+5";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -164,7 +164,7 @@ static void NegativeExponentialNumberTest()
 	// Should discard fractional part int integer representation, should preserve all as Double.
 	static const char json_text[]= "54587e-4";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -176,7 +176,7 @@ static void ZeroExponentNumberTest0()
 {
 	static const char json_text[]= "-58687e0";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -188,7 +188,7 @@ static void ZeroExponentNumberTest1()
 {
 	static const char json_text[]= "-58687e+0";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -200,7 +200,7 @@ static void ZeroExponentNumberTest2()
 {
 	static const char json_text[]= "-58687e-0";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -212,7 +212,7 @@ static void ZeroNumberParseTest0()
 {
 	static const char json_text[]= "0"; // Simple zero.
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -224,7 +224,7 @@ static void ZeroNumberParseTest1()
 {
 	static const char json_text[]= "0.0"; // Fractional zero
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -236,7 +236,7 @@ static void ZeroNumberParseTest2()
 {
 	static const char json_text[]= "0.0000"; // Surplus '0' zero
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -248,7 +248,7 @@ static void ZeroNumberParseTest3()
 {
 	static const char json_text[]= "0e12"; // Exponential zero
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -260,7 +260,7 @@ static void BigDoubleParseTest0()
 {
 	static const char json_text[]= "375.2e145";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -271,7 +271,7 @@ static void BigDoubleParseTest1()
 {
 	static const char json_text[]= "-4.45897e87";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -282,7 +282,7 @@ static void BigDoubleParseTest2()
 {
 	static const char json_text[]= "78.478e-245";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -293,7 +293,7 @@ static void ZeroLeadingDoubleParseTest0()
 {
 	static const char json_text[]= "0.00005458";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -304,7 +304,7 @@ static void ZeroLeadingDoubleParseTest1()
 {
 	static const char json_text[]= "0.00005458e25";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -315,7 +315,7 @@ static void ZeroLeadingDoubleParseTest2()
 {
 	static const char json_text[]= "0.00005458e-25";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -326,7 +326,7 @@ static void ZeroLeadingDoubleParseTest3()
 {
 	static const char json_text[]= "5467582475765";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Number );
@@ -344,7 +344,7 @@ static void ComplexObjectParseTest()
 			}
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Object );
@@ -366,7 +366,7 @@ static void ComplexArrayParseTest()
 			]
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Array );
@@ -383,7 +383,7 @@ static void ComplexStrigParseTest()
 			"ö  Ö  да---\n next line \t\t \\  \r"
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::String );
@@ -412,7 +412,7 @@ static void DepthHierarchyTest0()
 		}
 		)";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Object );
@@ -444,7 +444,7 @@ static void DepthHierarchyTest1()
 		}
 	)";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.IsObject() );
@@ -497,9 +497,9 @@ static void DepthHierarchyTest2()
 				"24",
 				"SpongeBob",
 			]
-	")";
+	)";
 
-	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+	const Parser::Result result= Parser().Parse( json_text );
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.IsArray() );

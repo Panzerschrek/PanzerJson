@@ -570,6 +570,16 @@ void Parser::SkipWhitespaces()
 		result_.error= Result::Error::UnexpectedEndOfFile;
 }
 
+void Parser::SkipWhitespacesAtEnd()
+{
+	SkipWhitespaces();
+
+	if (cur_ == end_)
+		result_.error= Result::Error::NoError;
+	else
+		result_.error= Result::Error::ExtraCharactersAfterJsonRoot;
+}
+
 void Parser::CorrectPointers_r( ValueBase& value )
 {
 
@@ -653,6 +663,11 @@ StringType Parser::CorrectStringPointer( const StringType str )
 	return reinterpret_cast<const char*>( offset + result_.storage.data() );
 }
 
+Parser::Result Parser::Parse( const char* const json_text_null_teriminated )
+{
+	return Parse( json_text_null_teriminated, size_t(std::strlen(json_text_null_teriminated)) );
+}
+
 Parser::Result Parser::Parse( const char* const json_text, const size_t json_text_length )
 {
 	start_= json_text;
@@ -669,12 +684,21 @@ Parser::Result Parser::Parse( const char* const json_text, const size_t json_tex
 	const ValueBase* root= Parse_r();
 	if( result_.error == Result::Error::NoError )
 	{
-		const size_t offset=
-			reinterpret_cast<const unsigned char*>(root) - static_cast<const unsigned char*>(nullptr);
-		root= reinterpret_cast<const ValueBase*>( offset + result_.storage.data() );
+		SkipWhitespacesAtEnd();
+		if( result_.error == Result::Error::NoError )
+		{
+			const size_t offset=
+				reinterpret_cast<const unsigned char*>(root) - static_cast<const unsigned char*>(nullptr);
+			root= reinterpret_cast<const ValueBase*>( offset + result_.storage.data() );
 
-		CorrectPointers_r( const_cast<ValueBase&>(*root) );
-		result_.root= Value( root );
+			CorrectPointers_r( const_cast<ValueBase&>(*root) );
+			result_.root= Value( root );
+		}
+		else
+		{
+			result_.error_pos= cur_ - start_;
+			result_.root= Value();
+		}
 	}
 	else
 	{

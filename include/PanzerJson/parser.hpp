@@ -18,6 +18,7 @@ public:
 			NoError,
 			UnexpectedLexem,
 			UnexpectedEndOfFile,
+			ExtraCharactersAfterJsonRoot,
 		};
 
 		Error error;
@@ -31,6 +32,7 @@ public:
 	Parser();
 	~Parser();
 
+	Result Parse( const char* json_text_null_teriminated );
 	Result Parse( const char* json_text, size_t json_text_length );
 
 	void ResetCaches();
@@ -39,6 +41,7 @@ private:
 	const ValueBase* Parse_r(); // Can set error flag.
 	StringType ParseString(); // Can set error flag.
 	void SkipWhitespaces(); // Can set error flag.
+	void SkipWhitespacesAtEnd(); // Can set error flag.
 
 	void CorrectPointers_r( ValueBase& value ); // Also, sorts objects keys.
 	StringType CorrectStringPointer( StringType str );
