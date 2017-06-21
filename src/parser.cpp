@@ -413,7 +413,12 @@ const ValueBase* Parser::Parse_r()
 		// Null
 		else if( *cur_ == 'n' )
 		{
-			if( end_ - cur_ < 4 || std::strncmp( cur_, "null", 4 ) != 0 )
+			if( end_ - cur_ < 4 )
+			{
+				result_.error= Result::Error::UnexpectedEndOfFile;
+				return nullptr;
+			}
+			if( std::strncmp( cur_, "null", 4 ) != 0 )
 			{
 				result_.error= Result::Error::UnexpectedLexem;
 				return nullptr;
@@ -434,7 +439,12 @@ const ValueBase* Parser::Parse_r()
 			bool bool_value;
 			if( *cur_ == 't' )
 			{
-				if( end_ - cur_ < 4 || std::strncmp( cur_, "true", 4 ) != 0 )
+				if( end_ - cur_ < 4 )
+				{
+					result_.error= Result::Error::UnexpectedEndOfFile;
+					return nullptr;
+				}
+				if( std::strncmp( cur_, "true", 4 ) != 0 )
 				{
 					result_.error= Result::Error::UnexpectedLexem;
 					return nullptr;
@@ -444,7 +454,12 @@ const ValueBase* Parser::Parse_r()
 			}
 			else
 			{
-				if( end_ - cur_ < 5 || std::strncmp( cur_, "false", 5 ) != 0 )
+				if( end_ - cur_ < 5 )
+				{
+					result_.error= Result::Error::UnexpectedEndOfFile;
+					return nullptr;
+				}
+				if( std::strncmp( cur_, "false", 5 ) != 0 )
 				{
 					result_.error= Result::Error::UnexpectedLexem;
 					return nullptr;

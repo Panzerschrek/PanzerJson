@@ -13,6 +13,7 @@ SOURCES += \
 	../src/value.cpp \
 	../tests/constexpr_init_test.cpp \
 	../tests/parser_test.cpp \
+	../tests/parser_errors_test.cpp \
 	../tests/tests_main.cpp \
 	../tests/value_test.cpp \
 

@@ -1,8 +1,10 @@
 extern void RunParserTests();
+extern void RunParserErrorsTests();
 extern void RunValueTests();
 
 int main()
 {
-	RunParserTests();
 	RunValueTests();
+	RunParserTests();
+	RunParserErrorsTests();
 }
