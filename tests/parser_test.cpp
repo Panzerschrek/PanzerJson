@@ -390,7 +390,7 @@ static void ComplexStrigParseTest()
 	test_assert( std::strcmp( result.root.AsString(), u8"ö  Ö  да---\n next line \t\t \\  \r" ) == 0 );
 }
 
-static void DepthHierarchyTest()
+static void DepthHierarchyTest0()
 {
 	static const char json_text[]=
 	u8R"(
@@ -416,6 +416,104 @@ static void DepthHierarchyTest()
 
 	test_assert( result.error == Parser::Result::Error::NoError );
 	test_assert( result.root.GetType() == ValueBase::Type::Object );
+}
+
+static void DepthHierarchyTest1()
+{
+	// Depth objects.
+	static const char json_text[]=
+	u8R"(
+		{
+			"a" : 42,
+			"b" :
+			{
+					"d" : 42,
+					"e" :
+					{
+						"HHH" : 1488,
+						"KKKKK" :
+						{
+								"0" : { "a" : 5, "b" : 6, "c" : 7 },
+								"1" : { "A" : 8, "B" : 9, "C" : 10 }
+						}
+					},
+					"f" : "lol",
+					"g" : null
+			},
+			"c" : "lol"
+		}
+	)";
+
+	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+
+	test_assert( result.error == Parser::Result::Error::NoError );
+	test_assert( result.root.IsObject() );
+	test_assert( result.root.ElementCount() == 3u );
+	test_assert( result.root["b"].IsObject() );
+	test_assert( result.root["b"].ElementCount() == 4u );
+	test_assert( result.root["b"]["e"].IsObject() );
+	test_assert( result.root["b"]["e"].ElementCount() == 2u );
+	test_assert( result.root["b"]["e"]["HHH"].AsInt() == 1488 );
+	test_assert( result.root["b"]["e"]["KKKKK"].IsObject() );
+	test_assert( result.root["b"]["e"]["KKKKK"].ElementCount() == 2u );
+	test_assert( result.root["b"]["e"]["KKKKK"]["0"].IsObject() );
+	test_assert( result.root["b"]["e"]["KKKKK"]["0"].ElementCount() == 3u );
+	test_assert( result.root["b"]["e"]["KKKKK"]["0"]["a"].AsInt() == 5 );
+	test_assert( result.root["b"]["e"]["KKKKK"]["0"]["b"].AsInt() == 6 );
+	test_assert( result.root["b"]["e"]["KKKKK"]["0"]["c"].AsInt() == 7 );
+	test_assert( result.root["b"]["e"]["KKKKK"]["1"].IsObject() );
+	test_assert( result.root["b"]["e"]["KKKKK"]["1"].ElementCount() == 3u );
+	test_assert( result.root["b"]["e"]["KKKKK"]["1"]["A"].AsInt() == 8 );
+	test_assert( result.root["b"]["e"]["KKKKK"]["1"]["B"].AsInt() == 9 );
+	test_assert( result.root["b"]["e"]["KKKKK"]["1"]["C"].AsInt() == 10 );
+}
+
+static void DepthHierarchyTest2()
+{
+	// Depth arrays.
+	static const char json_text[]=
+	u8R"(
+			[
+				"lol",
+				"r2d2",
+				-56,
+				[
+					[
+						{},
+						{
+							"arr":
+							[
+								85, 86, 87, 88
+							]
+						},
+						[
+							"ein", "zwei", "drei", "vier", "fünf"
+						],
+						"str"
+					],
+					"some",
+					568131819,
+				],
+				"24",
+				"SpongeBob",
+			]
+	")";
+
+	const Parser::Result result= Parser().Parse( json_text, sizeof(json_text ) );
+
+	test_assert( result.error == Parser::Result::Error::NoError );
+	test_assert( result.root.IsArray() );
+	test_assert( result.root.ElementCount() == 6u );
+	test_assert( std::strcmp( result.root[1u].AsString(), "r2d2" ) == 0 );
+	test_assert( result.root[3u].IsArray() );
+	test_assert( result.root[3u].ElementCount() == 3u );
+	test_assert( result.root[3u][0u].IsArray() );
+	test_assert( result.root[3u][0u].ElementCount() == 4u );
+	test_assert( result.root[3u][0u][1u]["arr"].IsArray() );
+	test_assert( result.root[3u][0u][1u]["arr"].ElementCount() == 4u );
+	test_assert( result.root[3u][0u][2u].IsArray() );
+	test_assert( result.root[3u][0u][2u].ElementCount() == 5u );
+	test_assert( std::strcmp( result.root[3u][0u][2u][4u].AsString(), u8"fünf" ) == 0 );
 }
 
 void RunParserTests()
@@ -451,5 +549,7 @@ void RunParserTests()
 	ComplexObjectParseTest();
 	ComplexArrayParseTest();
 	ComplexStrigParseTest();
-	DepthHierarchyTest();
+	DepthHierarchyTest0();
+	DepthHierarchyTest1();
+	DepthHierarchyTest2();
 }

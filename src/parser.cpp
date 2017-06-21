@@ -49,14 +49,8 @@ const ValueBase* Parser::Parse_r()
 			return nullptr;
 		}
 
-		std::vector<ObjectValue::ObjectEntry> entries_additional_storage;
-		std::vector<ObjectValue::ObjectEntry>& entries=
-			object_level_ < c_vectors_cache_size_
-				? object_elements_[ object_level_ ]
-				: entries_additional_storage;
-		entries.clear();
+		const size_t object_entries_stack_pos= object_entries_stack_.size();
 
-		object_level_++;
 		while(true)
 		{
 			SkipWhitespaces();
@@ -82,7 +76,7 @@ const ValueBase* Parser::Parse_r()
 				if( result_.error != Result::Error::NoError )
 					return nullptr;
 
-				entries.emplace_back( ObjectValue::ObjectEntry{ key, value } );
+				object_entries_stack_.emplace_back( ObjectValue::ObjectEntry{ key, value } );
 
 				SkipWhitespaces();
 				if( result_.error != Result::Error::NoError )
@@ -109,13 +103,14 @@ const ValueBase* Parser::Parse_r()
 				return nullptr;
 			}
 		}
-		object_level_--;
+
+		const size_t entries_count= object_entries_stack_.size() - object_entries_stack_pos;
 
 		const size_t entries_offset= result_.storage.size();
-		result_.storage.resize( result_.storage.size() + sizeof(ObjectValue::ObjectEntry) * entries.size() );
+		result_.storage.resize( result_.storage.size() + sizeof(ObjectValue::ObjectEntry) * entries_count );
 		ObjectValue::ObjectEntry* const result_entries=
 			reinterpret_cast<ObjectValue::ObjectEntry*>( result_.storage.data() + entries_offset );
-		std::memcpy( result_entries, entries.data(), sizeof(ObjectValue::ObjectEntry) * entries.size() );
+		std::memcpy( result_entries, object_entries_stack_.data() + object_entries_stack_pos, sizeof(ObjectValue::ObjectEntry) * entries_count );
 
 		const size_t object_offset= result_.storage.size();
 		result_.storage.resize( result_.storage.size() + sizeof(ObjectValue) );
@@ -123,7 +118,9 @@ const ValueBase* Parser::Parse_r()
 
 		object_value->type= ValueBase::Type::Object;
 		object_value->sub_objects= reinterpret_cast<ObjectValue::ObjectEntry*>( static_cast<char*>(nullptr) + entries_offset );
-		object_value->object_count= entries.size();
+		object_value->object_count= static_cast<uint32_t>(entries_count);
+
+		object_entries_stack_.resize(object_entries_stack_pos);
 
 		return reinterpret_cast<ObjectValue*>( static_cast<char*>(nullptr) + object_offset );
 	}
@@ -139,14 +136,8 @@ const ValueBase* Parser::Parse_r()
 			return nullptr;
 		}
 
-		std::vector<const ValueBase*> values_additional_storage;
-		std::vector<const ValueBase*>& values=
-			array_level_ < c_vectors_cache_size_
-				? array_elements_[ array_level_ ]
-				: values_additional_storage;
-		values.clear();
+		const size_t array_elements_stack_pos= array_elements_stack_.size();
 
-		array_level_++;
 		while(true)
 		{
 			SkipWhitespaces();
@@ -163,7 +154,7 @@ const ValueBase* Parser::Parse_r()
 				if( result_.error != Result::Error::NoError )
 					return nullptr;
 
-				values.push_back(value);
+				array_elements_stack_.push_back(value);
 
 				SkipWhitespaces();
 				if( result_.error != Result::Error::NoError )
@@ -175,13 +166,14 @@ const ValueBase* Parser::Parse_r()
 				}
 			}
 		} // while true
-		array_level_--;
+
+		const size_t array_element_count= array_elements_stack_.size() - array_elements_stack_pos;
 
 		const size_t values_offset= result_.storage.size();
-		result_.storage.resize( result_.storage.size() + sizeof(const ValueBase*) * values.size() );
+		result_.storage.resize( result_.storage.size() + sizeof(const ValueBase*) * array_element_count );
 		const ValueBase* * const array_values=
 			reinterpret_cast<const ObjectValue::ValueBase**>( result_.storage.data() + values_offset );
-		std::memcpy( array_values, values.data(), sizeof(const ValueBase*) * values.size() );
+		std::memcpy( array_values, array_elements_stack_.data() + array_elements_stack_pos, sizeof(const ValueBase*) * array_element_count );
 
 		const size_t array_offset= result_.storage.size();
 		result_.storage.resize( result_.storage.size() + sizeof(ArrayValue) );
@@ -189,7 +181,9 @@ const ValueBase* Parser::Parse_r()
 
 		array_value->type= ValueBase::Type::Array;
 		array_value->objects= reinterpret_cast<const ObjectValue::ValueBase**>( static_cast<char*>(nullptr) + values_offset );
-		array_value->object_count= values.size();
+		array_value->object_count= static_cast<uint32_t>(array_element_count);
+
+		array_elements_stack_.resize(array_elements_stack_pos);
 
 		return reinterpret_cast<ArrayValue*>( static_cast<char*>(nullptr) + array_offset );
 	}
@@ -662,8 +656,8 @@ Parser::Result Parser::Parse( const char* const json_text, const size_t json_tex
 	result_.error_pos= 0u;
 	result_.storage.clear();
 
-	array_level_= 0u;
-	object_level_= 0u;
+	array_elements_stack_.clear();
+	object_entries_stack_.clear();
 
 	const ValueBase* root= Parse_r();
 	if( result_.error == Result::Error::NoError )
@@ -689,16 +683,10 @@ void Parser::ResetCaches()
 	number_digits_.clear();
 	number_digits_.shrink_to_fit();
 
-	for( std::vector<const ValueBase*>& vec : array_elements_ )
-	{
-		vec.clear();
-		vec.shrink_to_fit();
-	}
-	for( std::vector<ObjectValue::ObjectEntry>& vec : object_elements_ )
-	{
-		vec.clear();
-		vec.shrink_to_fit();
-	}
+	array_elements_stack_.clear();
+	array_elements_stack_.shrink_to_fit();
+	object_entries_stack_.clear();
+	object_entries_stack_.shrink_to_fit();
 }
 
 } // namespace PanzerJson

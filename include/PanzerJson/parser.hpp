@@ -51,14 +51,11 @@ private:
 
 	std::vector<unsigned char> number_digits_;
 
-	// Cache for small vectors for accumulating of array/object values.
-	static constexpr size_t c_vectors_cache_size_= 8u;
-	std::vector<const ValueBase*> array_elements_[ c_vectors_cache_size_ ];
-	std::vector<ObjectValue::ObjectEntry> object_elements_[ c_vectors_cache_size_ ];
-	// Incretent counters while parsing object or array, decrement when parsing was done.
-	// Left unchenged on error.
-	size_t array_level_= 0u;
-	size_t object_level_= 0u;
+	// Stacks for temporary storing of array/object elements.
+	// Lower-level object can use stack, when upper-level object uses it.
+	// But, bweh parsing of lower-level was done, upper-level object can continue push values to this stack.
+	std::vector<const ValueBase*> array_elements_stack_;
+	std::vector<ObjectValue::ObjectEntry> object_entries_stack_;
 };
 
 } // namespace PanzerJson
