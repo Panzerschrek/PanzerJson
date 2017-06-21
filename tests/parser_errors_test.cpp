@@ -192,6 +192,18 @@ static void UnexpectedLexemTestObject4()
 	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
 }
 
+static void UnexpectedLexemTestObject5()
+{
+	// Expected string key.
+	static const char json_text[]=
+	u8R"(
+			{ non_string_key  }
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
 static void UnexpectedLexemTestArray0()
 {
 	// Unexpected ",".
@@ -264,6 +276,184 @@ static void UnexpectedLexemTestNumber3()
 	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
 }
 
+static void UnexpectedLexemTestString0()
+{
+	// Unknown character after '\'.
+	static const char json_text[]=
+	u8R"(
+			[ "string\Ütr" ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestBool0()
+{
+	// Invalid bool.
+	static const char json_text[]=
+	u8R"(
+			[ trur ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestBool1()
+{
+	// Invalid bool.
+	static const char json_text[]=
+	u8R"(
+			[ tttt ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestBool2()
+{
+	// Invalid bool.
+	static const char json_text[]=
+	u8R"(
+			[ flase ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestBool3()
+{
+	// Invalid bool.
+	static const char json_text[]=
+	u8R"(
+			[ f, 0, 0, 0 ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestBool4()
+{
+	// Invalid bool.
+	static const char json_text[]=
+	u8R"(
+			[ fal ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestNull0()
+{
+	// Invalid null.
+	static const char json_text[]=
+	u8R"(
+			[ n, 0, 0 ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestNull1()
+{
+	// Invalid null.
+	static const char json_text[]=
+	u8R"(
+			[ nul ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestNull2()
+{
+	// Invalid null.
+	static const char json_text[]=
+	u8R"(
+			[ nuul ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedSomething0()
+{
+	static const char json_text[]=
+	u8R"(
+			[ whath_is_shis? ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedSomething1()
+{
+	static const char json_text[]=
+	u8R"(
+			[ ? ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedSomething2()
+{
+	// Capital "N" does not allowed.
+	static const char json_text[]=
+	u8R"(
+			[ Null ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedSomething3()
+{
+	// Capital "T" does not allowed.
+	static const char json_text[]=
+	u8R"(
+			[ True ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedSomething4()
+{
+	// Capital "F" does not allowed.
+	static const char json_text[]=
+	u8R"(
+			[ False ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedSomething5()
+{
+	// Unexpected <> shit. We are not in html.
+	static const char json_text[]=
+	u8R"(
+			[ <body> / <body> ]
+		)";
+
+	const Parser::Result result= Parser().Parse( json_text );
+	test_assert(result.error == Parser::Result::Error::UnexpectedLexem );
+}
+
 void RunParserErrorsTests()
 {
 	UnexpectedEndOfFileTestObject0();
@@ -284,10 +474,26 @@ void RunParserErrorsTests()
 	UnexpectedLexemTestObject2();
 	UnexpectedLexemTestObject3();
 	UnexpectedLexemTestObject4();
+	UnexpectedLexemTestObject5();
 	UnexpectedLexemTestArray0();
 	UnexpectedLexemTestArray1();
 	UnexpectedLexemTestNumber0();
 	UnexpectedLexemTestNumber1();
 	UnexpectedLexemTestNumber2();
 	UnexpectedLexemTestNumber3();
+	UnexpectedLexemTestString0();
+	UnexpectedLexemTestBool0();
+	UnexpectedLexemTestBool1();
+	UnexpectedLexemTestBool2();
+	UnexpectedLexemTestBool3();
+	UnexpectedLexemTestBool4();
+	UnexpectedLexemTestNull0();
+	UnexpectedLexemTestNull1();
+	UnexpectedLexemTestNull2();
+	UnexpectedSomething0();
+	UnexpectedSomething1();
+	UnexpectedSomething2();
+	UnexpectedSomething3();
+	UnexpectedSomething4();
+	UnexpectedSomething5();
 }
