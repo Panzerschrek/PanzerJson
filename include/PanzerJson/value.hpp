@@ -160,11 +160,6 @@ public:
 	// Returns "true" or "false" for bool values.
 	StringType AsString() const noexcept;
 
-	// Simple serialization.
-	// TODO - does this needs in this library?
-	template<class Stream>
-	void Serialize( Stream& stream );
-
 	// Iterators
 private:
 	// TODO - maybe support random access iterators?
