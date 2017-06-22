@@ -37,6 +37,10 @@ static_assert(
 	sizeof(BoolValue) <= sizeof(int32_t) * 2u, // enum value + bool
 	"BoolValue expected to be smaller");
 
+static_assert( sizeof(Value::UniversalIterator) <= sizeof(void*) * 2u, "Universal iterator is too large." );
+static_assert( sizeof(Value::ArrayIterator) == sizeof(void*), "Specialized iterator must have pointer size." );
+static_assert( sizeof(Value::ObjectIterator) == sizeof(void*), "Specialized iterator must have pointer size." );
+
 }
 
 static constexpr NullValue g_null_value_content;
@@ -293,6 +297,16 @@ Value::ObjectIterator Value::object_end() const noexcept
 	}
 	else
 		return ObjectIterator( nullptr );
+}
+
+Value::IteratorRange<Value::ArrayIterator> Value::array_elements() const noexcept
+{
+	return IteratorRange<Value::ArrayIterator>( array_begin(), array_end() );
+}
+
+Value::IteratorRange<Value::ObjectIterator> Value::object_elements() const noexcept
+{
+	return IteratorRange<Value::ObjectIterator>( object_begin(), object_end() );
 }
 
 } // namespace PanzerJson

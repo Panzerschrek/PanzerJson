@@ -266,9 +266,20 @@ public:
 		const ObjectValue::ObjectEntry* ptr_;
 	};
 
-	static_assert( sizeof(UniversalIterator) <= sizeof(void*) * 2u, "Universal iterator is too large." );
-	static_assert( sizeof(ArrayIterator) == sizeof(void*), "Specialized iterator must have pointer size." );
-	static_assert( sizeof(ObjectIterator) == sizeof(void*), "Specialized iterator must have pointer size." );
+	// Helper class for iteration over array/object values.
+	template<class Iterator>
+	class IteratorRange final
+	{
+	public:
+		IteratorRange( const Iterator begin, const Iterator end ) noexcept;
+
+		Iterator begin() const noexcept;
+		Iterator end() const noexcept;
+
+	private:
+		Iterator begin_;
+		Iterator end_;
+	};
 
 	// Iterators.
 	// All iterators valid until "Value" destroying.
@@ -293,6 +304,10 @@ public:
 	ObjectIterator object_end() const noexcept;
 	ObjectIterator object_cbegin() const noexcept;
 	ObjectIterator object_cend() const noexcept;
+
+	// Helpers for simple iteration as object/array.
+	IteratorRange<ArrayIterator> array_elements() const noexcept;
+	IteratorRange<ObjectIterator> object_elements() const noexcept;
 
 private:
 	const ValueBase* SearchObject( const ObjectValue& object, const StringType& key ) const noexcept;

@@ -435,9 +435,9 @@ static void ArrayIteratorTest0()
 	{ // Iteration over test.
 		Value iterated_values[16];
 		unsigned int iteration_count= 0u;
-		for( auto it= value.array_begin(); it != value.array_end(); ++it)
+		for( const Value sub_value : value.array_elements() )
 		{
-			iterated_values[ iteration_count ]= *it;
+			iterated_values[ iteration_count ]= sub_value;
 			++iteration_count;
 		}
 
@@ -499,8 +499,9 @@ static void ArrayIteratorTest1()
 	test_assert(it_end == it_begin); // Must be equal for empty array.
 
 	unsigned int iteration_count= 0u;
-	for( auto it= value.array_begin(); it != value.array_end(); ++it)
+	for( const Value sub_value : value.array_elements() )
 	{
+		(void) sub_value;
 		++iteration_count;
 	}
 
@@ -517,8 +518,9 @@ static void ArrayIteratorTest2()
 		test_assert( value.array_begin() == value.array_end() );
 
 		unsigned int iteration_count= 0u;
-		for( auto it= value.array_begin(); it != value.array_end(); ++it)
+		for( const Value sub_value : value.array_elements() )
 		{
+			(void) sub_value;
 			++iteration_count;
 		}
 		test_assert( iteration_count == 0u );
@@ -588,10 +590,9 @@ static void ObjectIteratorTest0()
 
 	{ // Iteration over test.
 		unsigned int iteration_count= 0u;
-		for( auto it= value.object_begin(); it != value.object_end(); ++it )
+		for( const Value::ObjectIterator::value_type subobject_value : value.object_elements() )
 		{
 			Value original_value(objects[iteration_count].value);
-			Value::ObjectIterator::value_type subobject_value= *it;
 
 			test_assert( std::strcmp( subobject_value.first, objects[iteration_count].key ) == 0 );
 			test_assert(subobject_value.second.GetType() == original_value.GetType());
@@ -652,8 +653,9 @@ static void ObjectIteratorTest1()
 	test_assert(it_end == it_begin); // Must be equal for empty object.
 
 	unsigned int iteration_count= 0u;
-	for( auto it= value.object_begin(); it != value.object_end(); ++it)
+	for( const Value::ObjectIterator::value_type subobject_value : value.object_elements() )
 	{
+		(void)subobject_value;
 		++iteration_count;
 	}
 
@@ -669,8 +671,9 @@ static void ObjectIteratorTest2()
 		test_assert( value.object_begin() == value.object_end() );
 
 		unsigned int iteration_count= 0u;
-		for( auto it= value.object_begin(); it != value.object_end(); ++it)
+		for( const Value::ObjectIterator::value_type subobject_value : value.object_elements() )
 		{
+			(void)subobject_value;
 			++iteration_count;
 		}
 		test_assert( iteration_count == 0u );

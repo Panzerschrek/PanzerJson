@@ -224,6 +224,26 @@ inline Value::ObjectIterator::value_type Value::ObjectIterator::operator*() cons
 	return value_type( ptr_->key, Value( ptr_->value ) );
 }
 
+// IteratorRange
+
+template<class Iterator>
+Value::IteratorRange<Iterator>::IteratorRange( const Iterator begin, const Iterator end ) noexcept
+	: begin_(begin), end_(end)
+{
+}
+
+template<class Iterator>
+Iterator Value::IteratorRange<Iterator>::begin() const noexcept
+{
+	return begin_;
+}
+
+template<class Iterator>
+Iterator Value::IteratorRange<Iterator>::end() const noexcept
+{
+	return end_;
+}
+
 template<class Stream>
 void Value::SerializeString( Stream& stream, StringType str )
 {
