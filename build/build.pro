@@ -18,6 +18,7 @@ SOURCES += \
 	../tests/value_test.cpp \
 
 HEADERS += \
+	../include/PanzerJson/fwd.hpp \
 	../include/PanzerJson/parser.hpp \
 	../include/PanzerJson/value.inl \
 	../include/PanzerJson/value.hpp \

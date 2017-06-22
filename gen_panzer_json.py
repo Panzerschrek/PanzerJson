@@ -181,7 +181,8 @@ def WritePanzerJsonValue( json_struct ):
 def WritePanzerJsonCpp( json_struct, h_file_name, variable_name ):
 	root_value= WritePanzerJsonValue( json_struct )
 
-	result= "#include \"" + h_file_name + "\"\n\n"
+	result= "#include <PanzerJson/value.hpp>\n\n"
+	result= result + "#include \"" + h_file_name + "\"\n\n"
 	result= result + "namespace\n{\n\n"
 	result= result + "using namespace PanzerJson;\n\n"
 	result= result + root_value[0]
@@ -191,7 +192,7 @@ def WritePanzerJsonCpp( json_struct, h_file_name, variable_name ):
 
 def WritePanzerJsonHpp( variable_name ):
 	result= "#pragma once\n"
-	result= result + "#include <PanzerJson/value.hpp>\n"
+	result= result + "#include <PanzerJson/fwd.hpp>\n"
 	result= result + "extern const PanzerJson::ValueBase& " + variable_name + ";\n"
 	return result
 

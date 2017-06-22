@@ -3,6 +3,8 @@
 #include <iterator>
 #include <utility>
 
+#include "fwd.hpp"
+
 namespace PanzerJson
 {
 
@@ -11,13 +13,6 @@ namespace PanzerJson
 // TODO - maybe support string views?
 using StringType= const char*;
 int StringCompare( const StringType& l, const StringType& r );
-
-struct NullValue;
-struct ObjectValue;
-struct ArrayValue;
-struct StringValue;
-struct NumberValue;
-struct BoolValue;
 
 struct ValueBase
 {
