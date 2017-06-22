@@ -20,8 +20,9 @@ def ParseJson( json_content_str ):
 named_values_counter= 0
 def NextCounter():
 	global named_values_counter
+	result= named_values_counter
 	named_values_counter= named_values_counter + 1
-	return str(named_values_counter)
+	return str(result)
 
 
 def Stringify( something ):
@@ -91,10 +92,7 @@ def WritePanzerJsonValue( json_struct ):
 
 	if type(json_struct) is dict:
 		keys_sorted= sorted( json_struct )
-		obj_storage_name= "object_storage" + NextCounter()
-		obj_value_name= "object_value" + NextCounter()
-		result_object_storage= "constexpr const ObjectValue::ObjectEntry " + obj_storage_name + "[]\n{\n"
-		result_object= "constexpr const ObjectValue " + obj_value_name + "( " + obj_storage_name + ", " + str(len(json_struct)) + " );\n\n"
+		result_object_storage= ""
 		result_preinitializer= ""
 
 		for object_key in keys_sorted :
@@ -102,14 +100,15 @@ def WritePanzerJsonValue( json_struct ):
 			result_preinitializer= result_preinitializer + member_value[0]
 			result_object_storage= result_object_storage + "\t{ " + MakeQuotedEscapedString(object_key) + ", &" + member_value[1] + " },\n"
 
-		result_object_storage+= "};\n";
+		obj_storage_name= "object_storage" + NextCounter()
+		obj_value_name= "object_value" + NextCounter()
+		result_object_storage= "constexpr const ObjectValue::ObjectEntry " + obj_storage_name + "[]\n{\n" + result_object_storage + "};\n"
+		result_object= "constexpr const ObjectValue " + obj_value_name + "( " + obj_storage_name + ", " + str(len(json_struct)) + " );\n\n"
+
 		return [ result_preinitializer + result_object_storage + result_object, obj_value_name ]
 
 	if type(json_struct) is list:
-		arr_storage_name= "array_storage" + NextCounter()
-		arr_value_name= "array_value" + NextCounter()
-		result_array_storage= "constexpr const ValueBase* " + arr_storage_name + "[]\n{\n"
-		result_array= "constexpr const ArrayValue " + arr_value_name + "( " + arr_storage_name + ", " + str(len(json_struct)) + " );\n\n"
+		result_array_storage= ""
 		result_preinitializer= ""
 
 		for array_member in json_struct :
@@ -117,7 +116,11 @@ def WritePanzerJsonValue( json_struct ):
 			result_preinitializer= result_preinitializer + member_value[0]
 			result_array_storage= result_array_storage  + "\t&" + member_value[1] + ",\n"
 
-		result_array_storage+= "};\n";
+		arr_storage_name= "array_storage" + NextCounter()
+		arr_value_name= "array_value" + NextCounter()
+		result_array_storage= "constexpr const ValueBase* " + arr_storage_name + "[]\n{\n" + result_array_storage + "};\n"
+		result_array= "constexpr const ArrayValue " + arr_value_name + "( " + arr_storage_name + ", " + str(len(json_struct)) + " );\n\n"
+
 		return [ result_preinitializer + result_array_storage + result_array, arr_value_name ]
 
 	if type(json_struct) is str:
