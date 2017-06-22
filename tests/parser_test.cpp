@@ -538,6 +538,66 @@ static void ResultToSharedPtrCastTest()
 	test_assert( result_copy->root.ElementCount() == 4u );
 }
 
+static void CommentsTest0()
+{
+	static const char json_text[]=
+	u8R"(
+		{  // line comment -1
+			"foo" : "bar", // line comment 0"
+			// Comment between lines
+			"baz" : 42
+		}  // line comment 1
+	)";
+
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+
+	test_assert( result->error == Parser::Result::Error::NoError );
+	test_assert( result->root.IsObject() );
+	test_assert( result->root.ElementCount() == 2u );
+	test_assert( result->root["baz"].AsInt() == 42u );
+}
+
+static void CommentsTest1()
+{
+	static const char json_text[]=
+	u8R"(
+		{
+			"foo" /* foo comment */ : "bar", /* comment after bar */
+			/* comment before baz" */ "baz" /* just */ : /**/ 42
+		}
+	)";
+
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+
+	test_assert( result->error == Parser::Result::Error::NoError );
+	test_assert( result->root.IsObject() );
+	test_assert( result->root.ElementCount() == 2u );
+	test_assert( result->root["baz"].AsInt() == 42u );
+}
+
+static void CommentsTest2()
+{
+	static const char json_text[]=
+	u8R"(
+		{
+			"foo" : "bar", /* multiple */
+			// different
+			// style
+			// comments
+			/* in json */
+			"baz" /*0*//*1*//*2*/: 42
+		}
+	)";
+
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+
+	test_assert( result->error == Parser::Result::Error::NoError );
+	test_assert( result->root.IsObject() );
+	test_assert( result->root.ElementCount() == 2u );
+	test_assert( result->root["baz"].AsInt() == 42u );
+}
+
+
 void RunParserTests()
 {
 	SimpleObjectParseTest();
@@ -575,4 +635,7 @@ void RunParserTests()
 	DepthHierarchyTest1();
 	DepthHierarchyTest2();
 	ResultToSharedPtrCastTest();
+	CommentsTest0();
+	CommentsTest1();
+	CommentsTest2();
 }

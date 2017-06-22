@@ -61,6 +61,9 @@ public:
 	void SetEnableNoncompositeJsonRoot( bool enable );
 	bool GetEnableNoncompositeJsonRoot() const;
 
+	void SetEnableComments( bool enable );
+	bool GetEnableCommetns() const;
+
 	void ResetCaches();
 
 private:
@@ -75,10 +78,12 @@ private:
 private:
 	const char* start_;
 	const char* end_;
+	const char* end_minus_one_;
 	const char* cur_;
 	Result result_;
 
 	bool enable_noncomposite_json_root_= true;
+	bool enable_comments_= true;
 
 	std::vector<unsigned char> number_digits_;
 

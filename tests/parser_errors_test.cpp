@@ -129,6 +129,22 @@ static void UnexpectedEndOfFileTestFalse()
 	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
 }
 
+static void UnexpectedEndOfFileComment0()
+{
+	static const char json_text[]= "[ // comment";
+
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
+}
+
+static void UnexpectedEndOfFileComment1()
+{
+	static const char json_text[]= "[ /* comment";
+
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
+}
+
 static void UnexpectedLexemTestObject0()
 {
 	// Expected ":".
@@ -381,6 +397,28 @@ static void UnexpectedLexemTestNull2()
 	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
 }
 
+static void UnexpectedLexemTestComment0()
+{
+	static const char json_text[]=
+	u8R"(
+			[ /t strange comment ]
+		)";
+
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestComment1()
+{
+	static const char json_text[]=
+	u8R"(
+			[ /& strange comment &/ ]
+		)";
+
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
+}
+
 static void UnexpectedSomething0()
 {
 	static const char json_text[]=
@@ -511,6 +549,8 @@ void RunParserErrorsTests()
 	UnexpectedEndOfFileTestNull();
 	UnexpectedEndOfFileTestTrue();
 	UnexpectedEndOfFileTestFalse();
+	UnexpectedEndOfFileComment0();
+	UnexpectedEndOfFileComment1();
 	UnexpectedLexemTestObject0();
 	UnexpectedLexemTestObject1();
 	UnexpectedLexemTestObject2();
@@ -532,6 +572,8 @@ void RunParserErrorsTests()
 	UnexpectedLexemTestNull0();
 	UnexpectedLexemTestNull1();
 	UnexpectedLexemTestNull2();
+	UnexpectedLexemTestComment0();
+	UnexpectedLexemTestComment1();
 	UnexpectedSomething0();
 	UnexpectedSomething1();
 	UnexpectedSomething2();

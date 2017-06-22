@@ -603,9 +603,69 @@ StringType Parser::ParseString()
 
 void Parser::SkipWhitespaces()
 {
-	while( cur_ < end_ &&
-		( *cur_ == ' ' || *cur_ == '\t' || *cur_ == '\r' || *cur_ == '\n' ) )
-		++cur_;
+	if( !enable_comments_ )
+	{
+		while( cur_ < end_ &&
+			( *cur_ == ' ' || *cur_ == '\t' || *cur_ == '\r' || *cur_ == '\n' ) )
+			++cur_;
+	}
+	else
+	{
+		while(true)
+		{
+			// Whitespaces first.
+			while( cur_ < end_ &&
+				( *cur_ == ' ' || *cur_ == '\t' || *cur_ == '\r' || *cur_ == '\n' ) )
+				++cur_;
+
+			if( cur_ == end_ )
+				break;
+
+			// Then comments.
+			if( *cur_ == '/' )
+			{
+				++cur_;
+				if( cur_ == end_ )
+				{
+					result_.error= Result::Error::UnexpectedEndOfFile;
+					return;
+				}
+
+				// Comment
+				if( *cur_ == '/' )
+				{
+					++cur_;
+					while( cur_ < end_ && *cur_ != '\n')
+						++cur_;
+				}
+				else if( *cur_ == '*' ) /* comment */
+				{
+					++cur_;
+					while( cur_ < end_minus_one_ )
+					{
+						if( cur_[0] == '*' && cur_[1] == '/' )
+						{
+							cur_+= 2u;
+							break;
+						}
+						++cur_;
+					}
+					if( cur_ >= end_minus_one_ )
+					{
+						result_.error= Result::Error::UnexpectedEndOfFile;
+						return;
+					}
+				}
+				else
+				{
+					result_.error= Result::Error::UnexpectedLexem;
+					return;
+				}
+			}
+			else
+				break;
+		}
+	}
 
 	if( cur_ == end_ )
 		result_.error= Result::Error::UnexpectedEndOfFile;
@@ -713,6 +773,7 @@ Parser::ResultPtr Parser::Parse( const char* const json_text, const size_t json_
 {
 	start_= json_text;
 	end_= json_text + json_text_length;
+	end_minus_one_= end_ - 1u;
 	cur_= start_;
 
 	result_.error= Result::Error::NoError;
@@ -769,6 +830,16 @@ void Parser::SetEnableNoncompositeJsonRoot( const bool enable )
 bool Parser::GetEnableNoncompositeJsonRoot() const
 {
 	return enable_noncomposite_json_root_;
+}
+
+void Parser::SetEnableComments( const bool enable )
+{
+	enable_comments_= enable;
+}
+
+bool Parser::GetEnableCommetns() const
+{
+	return enable_comments_;
 }
 
 void Parser::ResetCaches()
