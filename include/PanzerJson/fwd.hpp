@@ -15,5 +15,6 @@ struct BoolValue;
 class Value;
 
 class Parser;
+class Serializer;
 
 } // namespace PanzerJson

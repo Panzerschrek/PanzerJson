@@ -20,6 +20,8 @@ SOURCES += \
 HEADERS += \
 	../include/PanzerJson/fwd.hpp \
 	../include/PanzerJson/parser.hpp \
+	../include/PanzerJson/serializer.hpp \
+	../include/PanzerJson/serializer.inl \
 	../include/PanzerJson/value.inl \
 	../include/PanzerJson/value.hpp \
 	../tests/tests.hpp \

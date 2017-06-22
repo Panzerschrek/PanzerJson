@@ -304,14 +304,12 @@ public:
 	IteratorRange<ArrayIterator> array_elements() const noexcept;
 	IteratorRange<ObjectIterator> object_elements() const noexcept;
 
+	// Get internal value.
+	// Do it, if you know, what you did.
+	const ValueBase* GetInternalValue() const noexcept;
+
 private:
 	const ValueBase* SearchObject( const ObjectValue& object, const StringType& key ) const noexcept;
-
-	template<class Stream>
-	static void SerializeString( Stream& stream, StringType str );
-
-	template<class Stream>
-	static void Serialize_r( Stream& stream, const ValueBase& value, size_t tab );
 
 private:
 	const ValueBase* value_;
