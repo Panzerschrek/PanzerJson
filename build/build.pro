@@ -5,6 +5,8 @@ CONFIG+= c++11
 INCLUDEPATH += "../inlcude"
 INCLUDEPATH += OBJECTS_DIR # For test we need read temporary files, generated from jsons.
 
+QMAKE_CXXFLAGS += -Wextra
+
 # Put path to your python here.
 PYTHON= "C:/Documents And Settings/Panzerschrek/Python/Python.exe"
 

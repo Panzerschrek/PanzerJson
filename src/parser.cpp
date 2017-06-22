@@ -8,16 +8,16 @@ namespace PanzerJson
 
 // For big powers.
 // Method is faster for big powers - complexity is about O(log2(power)).
-static double TenPowerDouble( const uint64_t power )
+static double TenPowerDouble( const unsigned int power )
 {
-	if( power == 0 )
+	if( power == 0u )
 		return 1.0;
-	if( power == 1 )
+	if( power == 1u )
 		return 10.0;
 
 	const double half_power= TenPowerDouble( power / 2u );
 	double result= half_power * half_power;
-	if( ( power & 1u ) != 0 )
+	if( ( power & 1u ) != 0u )
 		result*= 10.0;
 
 	return result;
@@ -235,6 +235,7 @@ const ValueBase* Parser::Parse_r()
 
 			constexpr uint64_t c_max_uint64= std::numeric_limits<uint64_t>::max();
 			constexpr uint64_t c_max_abs_int64= c_max_uint64 / 2u + 1u;
+			constexpr unsigned int c_max_exponent= 65536u; // Max reasonable exponent.
 
 			number_digits_.clear();
 			number_digits_.reserve(64u);
@@ -275,7 +276,7 @@ const ValueBase* Parser::Parse_r()
 			}
 			else
 				extract_digits();
-			int64_t decimal_point_pos= number_digits_.size();
+			int decimal_point_pos= static_cast<int>(number_digits_.size());
 
 			if( cur_ == end_ )
 				goto num_parse_end;
@@ -325,20 +326,20 @@ const ValueBase* Parser::Parse_r()
 					return nullptr;
 				}
 
-				uint64_t exponent= 0u;
+				unsigned int exponent= 0u;
 				while( cur_ < end_ && *cur_ >= '0' && *cur_ <= '9' )
 				{
-					const uint64_t mul10= exponent * 10u;
+					const unsigned int mul10= exponent * 10u;
 					if( mul10 / 10u != exponent || mul10 < exponent ) // Detect overflow.
 					{
-						exponent= c_max_uint64;
+						exponent= c_max_exponent;
 						break;
 					}
 
-					const uint64_t add_digit= mul10 + uint64_t( *cur_ - '0' );
+					const unsigned int add_digit= mul10 + static_cast<unsigned int>( *cur_ - '0' );
 					if( add_digit < mul10 ) // Detect overflow.
 					{
-						exponent= c_max_uint64;
+						exponent= c_max_exponent;
 						break;
 					}
 
@@ -346,10 +347,11 @@ const ValueBase* Parser::Parse_r()
 					++cur_;
 				}
 
+				const int final_expoent= static_cast<int>( std::min( exponent, c_max_exponent ) );
 				if( exponent_is_negative )
-					decimal_point_pos-= static_cast<int64_t>(exponent);
+					decimal_point_pos-= final_expoent;
 				else
-					decimal_point_pos+= static_cast<int64_t>(exponent);
+					decimal_point_pos+= final_expoent;
 			}
 
 			num_parse_end:
@@ -358,7 +360,7 @@ const ValueBase* Parser::Parse_r()
 			double result_double_val;
 			{
 				uint64_t result_val= 0u;
-				for( int64_t i= 0u; i < std::min( decimal_point_pos, int64_t(number_digits_.size()) ); i++ )
+				for( int i= 0; i < std::min( decimal_point_pos, static_cast<int>(number_digits_.size()) ); i++ )
 				{
 					const uint64_t mul10= result_val * 10u;
 					if( mul10 / 10u != result_val || mul10 < result_val ) // Detect overflow.
@@ -377,7 +379,7 @@ const ValueBase* Parser::Parse_r()
 
 					result_val= add_digit;
 				}
-				for( int64_t i= int64_t(number_digits_.size()); i < decimal_point_pos; i++ )
+				for( int i= static_cast<int>(number_digits_.size()); i < decimal_point_pos; i++ )
 				{
 					const uint64_t mul10= result_val * 10u;
 					if( mul10 / 10u != result_val || mul10 < result_val ) // Detect overflow.
@@ -398,11 +400,11 @@ const ValueBase* Parser::Parse_r()
 				for( const unsigned char digit : number_digits_ )
 					result_double_val= result_double_val * 10.0 + double(digit);
 
-				const int64_t exponent= decimal_point_pos - static_cast<int64_t>(number_digits_.size());
+				const int exponent= decimal_point_pos - static_cast<int>(number_digits_.size());
 				if( exponent >= 0 )
-					result_double_val*= TenPowerDouble(static_cast<uint64_t>(+exponent));
+					result_double_val*= TenPowerDouble(static_cast<unsigned int>(+exponent));
 				else
-					result_double_val/= TenPowerDouble(static_cast<uint64_t>(-exponent));
+					result_double_val/= TenPowerDouble(static_cast<unsigned int>(-exponent));
 
 				if( is_negative )
 					result_double_val*= -1.0;
