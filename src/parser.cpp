@@ -780,7 +780,6 @@ Parser::ResultPtr Parser::Parse( const char* const json_text, const size_t json_
 
 	result_.error= Result::Error::NoError;
 	result_.error_pos= 0u;
-	result_.storage.clear();
 
 	array_elements_stack_.clear();
 	object_entries_stack_.clear();
@@ -819,7 +818,7 @@ Parser::ResultPtr Parser::Parse( const char* const json_text, const size_t json_
 	result->error= result_.error;
 	result->error_pos= result_.error_pos;
 	result->root= result_.root;
-	result->storage= std::move( result_.storage );
+	result->storage.swap( result_.storage );
 
 	return std::move(result);
 }
