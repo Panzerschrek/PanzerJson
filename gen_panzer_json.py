@@ -85,6 +85,8 @@ false_bool_value_emitted= False
 true_bool_value_emitted = False
 number_values_pool= dict()
 string_values_pool= dict()
+object_values_pool= dict()
+array_values_pool= dict()
 
 # Returns pair of strings.
 # First string - preinitializers, second string - name.
@@ -100,8 +102,17 @@ def WritePanzerJsonValue( json_struct ):
 			result_preinitializer= result_preinitializer + member_value[0]
 			result_object_storage= result_object_storage + "\t{ " + MakeQuotedEscapedString(object_key) + ", &" + member_value[1] + " },\n"
 
+		# We use pooling for all values. So, if storage is equal to previous objects storage, then, objects are equal.
+		global object_values_pool
+		pool_object= object_values_pool.get( result_object_storage, None )
+		if pool_object is not None:
+			return [ "", pool_object ]
+
 		obj_storage_name= "object_storage" + NextCounter()
 		obj_value_name= "object_value" + NextCounter()
+
+		object_values_pool[ result_object_storage ]= obj_value_name
+
 		result_object_storage= "constexpr const ObjectValue::ObjectEntry " + obj_storage_name + "[]\n{\n" + result_object_storage + "};\n"
 		result_object= "constexpr const ObjectValue " + obj_value_name + "( " + obj_storage_name + ", " + str(len(json_struct)) + " );\n\n"
 
@@ -116,8 +127,17 @@ def WritePanzerJsonValue( json_struct ):
 			result_preinitializer= result_preinitializer + member_value[0]
 			result_array_storage= result_array_storage  + "\t&" + member_value[1] + ",\n"
 
+		# We use pooling for all values. So, if storage is equal to previous objects storage, then, objects are equal.
+		global array_values_pool
+		pool_array= array_values_pool.get( result_array_storage, None )
+		if pool_array is not None:
+			return [ "", pool_array ]
+
 		arr_storage_name= "array_storage" + NextCounter()
 		arr_value_name= "array_value" + NextCounter()
+
+		array_values_pool[ result_array_storage ]= arr_value_name
+
 		result_array_storage= "constexpr const ValueBase* " + arr_storage_name + "[]\n{\n" + result_array_storage + "};\n"
 		result_array= "constexpr const ArrayValue " + arr_value_name + "( " + arr_storage_name + ", " + str(len(json_struct)) + " );\n\n"
 

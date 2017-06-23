@@ -49,3 +49,4 @@ JSON_TESTS+= \
 	../tests/test_jsons/null_and_bool_values_pooling_test.json \
 	../tests/test_jsons/numbers_pooling_test.json \
 	../tests/test_jsons/strings_pooling_test.json \
+	../tests/test_jsons/objects_and_arrays_pooling_test.json \

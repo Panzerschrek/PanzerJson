@@ -1,0 +1,31 @@
+{
+    "foo" : "bar",
+    "arr0" :
+    [
+        42, {}, "num", false
+    ],
+    "subobject":
+    {
+        "arr1" :
+        [
+            42, {}, "num", false
+        ]
+    },
+    "empty array" : [],
+    "simple_obj" :
+    {
+        "age" : 24,
+        "sex" : "male",
+        "favorite programming language" : "C++"
+    },
+    "subarray" :
+    [
+        [],
+        {},
+        {
+            "sex" : "male",
+            "age" : 24,
+            "favorite programming language" : "C++"
+        }
+    ]
+}
