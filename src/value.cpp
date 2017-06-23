@@ -46,13 +46,78 @@ static_assert( sizeof(Value::ObjectIterator) == sizeof(void*), "Specialized iter
 static constexpr NullValue g_null_value_content;
 static const Value g_null_value( & g_null_value_content );
 
-int StringCompare( const StringType& l, const StringType& r )
+int StringCompare( const StringType& l, const StringType& r ) noexcept
 {
 	// Change this if string type changed.
 
 	// Currently, we have UTF-8 encoding.
 	// For UTF-8 comparison result is equal to comparison result for UTF-32.
 	return std::strcmp( l, r );
+}
+
+static bool ValuesAreEqual_r( const ValueBase& l, const ValueBase& r ) noexcept
+{
+	if( l.type != r.type )
+		return false;
+
+	switch( l.type )
+	{
+	case ValueBase::Type::Null:
+		return true;
+
+	case ValueBase::Type::Object:
+		{
+			const ObjectValue& l_object= static_cast<const ObjectValue&>(l);
+			const ObjectValue& r_object= static_cast<const ObjectValue&>(r);
+			if( l_object.object_count != r_object.object_count )
+				return false;
+
+			for( uint32_t i= 0u; i < l_object.object_count; i++ )
+			{
+				if( StringCompare( l_object.sub_objects[i].key, r_object.sub_objects[i].key ) != 0 )
+					return false;
+				if( !ValuesAreEqual_r( *l_object.sub_objects[i].value, *r_object.sub_objects[i].value ) )
+					return false;
+			}
+			return true;
+		}
+
+	case ValueBase::Type::Array:
+		{
+			const ArrayValue& l_array= static_cast<const ArrayValue&>(l);
+			const ArrayValue& r_array= static_cast<const ArrayValue&>(r);
+			if( l_array.object_count != r_array.object_count )
+				return false;
+
+			for( uint32_t i= 0u; i < l_array.object_count; i++ )
+			{
+				if( !ValuesAreEqual_r( *l_array.objects[i], *r_array.objects[i] ) )
+					return false;
+			}
+			return true;
+		}
+
+	case ValueBase::Type::String:
+		return
+			StringCompare(
+				static_cast<const StringValue&>(l).str,
+				static_cast<const StringValue&>(r).str ) == 0;
+
+	case ValueBase::Type::Number:
+		{
+			const NumberValue& l_number= static_cast<const NumberValue&>(l);
+			const NumberValue& r_number= static_cast<const NumberValue&>(r);
+			// TODO - maybe compare and string values too?
+			return
+				l_number.int_value == r_number.int_value &&
+				l_number.double_value == r_number.double_value;
+		}
+
+		case ValueBase::Type::Bool:
+			return static_cast<const BoolValue&>(l).value == static_cast<const BoolValue&>(r).value;
+	}
+
+	return false;
 }
 
 Value::Value() noexcept
@@ -197,6 +262,16 @@ StringType Value::AsString() const noexcept
 
 	// TODO - assert here.
 	return "";
+}
+
+bool Value::operator==( const Value& other ) const noexcept
+{
+	return ValuesAreEqual_r( *value_, *other.value_ );
+}
+
+bool Value::operator!=( const Value& other ) const noexcept
+{
+	return !( *this == other );
 }
 
 Value::UniversalIterator Value::begin() const noexcept

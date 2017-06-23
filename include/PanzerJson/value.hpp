@@ -12,7 +12,7 @@ namespace PanzerJson
 // TODO - maybe add support for width encodings?
 // TODO - maybe support string views?
 using StringType= const char*;
-int StringCompare( const StringType& l, const StringType& r );
+int StringCompare( const StringType& l, const StringType& r ) noexcept;
 
 struct ValueBase
 {
@@ -159,6 +159,18 @@ public:
 	// Returns string representation for numbers. TODO - does this need?
 	// Returns "true" or "false" for bool values.
 	StringType AsString() const noexcept;
+
+	// Equality operations.
+	// Methods can be slow for big values, especially for arrays.
+
+	// Null values are allways equals.
+	// Objects is equals, if size equals and equals eack key-value pair.
+	// Arrays is equals, if size equals and equals each value pair.
+	// String are equals, if equals it content.
+	// Numbers are equals if equals both double and integer representations.
+	// Bools are equals if equals bool values.
+	bool operator==( const Value& other ) const noexcept;
+	bool operator!=( const Value& other ) const noexcept;
 
 	// Iterators
 private:

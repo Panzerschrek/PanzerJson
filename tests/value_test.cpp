@@ -740,6 +740,255 @@ static void IteratorsAlgorithms()
 	// Now - there are no std::algorithm, using BidirectionalIterator and no modifying input sequence.
 }
 
+static void ValueEqualityTest0()
+{
+	static constexpr NullValue null_value0;
+	static constexpr NullValue null_value1;
+
+	test_assert( Value( &null_value0 ) == Value( &null_value1 ) );
+}
+
+static void ValueEqualityTest1()
+{
+	static constexpr NullValue null_value;
+	const Value value( &null_value );
+
+	test_assert( value  == value );
+	test_assert( !( value != value ) );
+}
+
+static void ValueEqualityTest2()
+{
+	// Basic numbers equality test.
+
+	static constexpr NumberValue number0( "3.14", 3, 3.14 );
+	static constexpr NumberValue number1( "3.14", 3, 3.14 );
+	static constexpr NumberValue number2( "2.718281828", 2, 2.718281828);
+	const Value number_value0( &number0 );
+	const Value number_value1( &number1 );
+	const Value number_value2( &number2 );
+
+	test_assert( number_value0 == number_value0 );
+	test_assert( !( number_value0 != number_value0 ) );
+
+	test_assert( number_value2 == number_value2 );
+	test_assert( !( number_value2 != number_value2 ) );
+
+	test_assert( number_value0 == number_value1 );
+	test_assert( !( number_value0 != number_value1 ) );
+
+	test_assert( number_value0 != number_value2 );
+	test_assert( !( number_value0 == number_value2 ) );
+}
+
+static void ValueEqualityTest3()
+{
+	// Numbers with same integer part but with dirrerent double part are not equal.
+	static constexpr NumberValue number0( "3.14", 3, 3.14 );
+	static constexpr NumberValue number1( "3.15", 3, 3.15 );
+	const Value number_value0( &number0 );
+	const Value number_value1( &number1 );
+
+	test_assert( number_value0 != number_value1 );
+	test_assert( !( number_value0 == number_value1 ) );
+}
+
+static void ValueEqualityTest4()
+{
+	// Strings equality test.
+
+	static constexpr StringValue string0( u8"Quick brown fox jumps over the lazy dog" );
+	static constexpr StringValue string1( u8"Quick brown fox jumps over the lazy dog" );
+	static constexpr StringValue string2( u8"Quick brown fox is dead" );
+	static constexpr StringValue string3( u8"" );
+	static constexpr StringValue string4( u8"Not so fast fox jumps over the lazy dog" );
+	static constexpr StringValue string5( u8"A" );
+	static constexpr StringValue string6( u8"a" );
+	const Value string_value0( &string0 );
+	const Value string_value1( &string1 );
+	const Value string_value2( &string2 );
+	const Value string_value3( &string3 );
+	const Value string_value4( &string4 );
+	const Value string_value5( &string5 );
+	const Value string_value6( &string6 );
+
+	// Same string
+	test_assert( string_value0 == string_value0 );
+	test_assert( !( string_value0 != string_value0 ) );
+
+	// Strings with same content
+	test_assert( string_value0 == string_value1 );
+	test_assert( !( string_value0 != string_value1 ) );
+
+	// Strings with different end
+	test_assert( string_value0 != string_value2 );
+	test_assert( !( string_value0 == string_value2 ) );
+
+	// Strungs with different start
+	test_assert( string_value1 != string_value4 );
+	test_assert( !( string_value1 == string_value4 ) );
+
+	// Same exmpty string
+	test_assert( string_value3 == string_value3 );
+	test_assert( !( string_value3 != string_value3 ) );
+
+	// Empty string not equal no nonempty string
+	test_assert( string_value3 != string_value2 );
+	test_assert( !( string_value3 == string_value2 ) );
+
+	// Different case strings
+	test_assert( string_value5 != string_value6 );
+	test_assert( !( string_value5 == string_value6 ) );
+}
+
+static void ValueEqualityTest5()
+{
+	// Arrays.
+
+	static constexpr StringValue string0( u8"Quick brown fox jumps over the lazy dog" );
+	static constexpr StringValue string1( u8"A" );
+	static constexpr StringValue string2( u8"" );
+	static constexpr StringValue string3( u8"" );
+	static constexpr NumberValue number0( "3.14", 3, 3.14 );
+	static constexpr NumberValue number1( "2.718281828", 2, 2.718281828);
+	static constexpr NumberValue number2( "2.718281828", 2, 2.718281828);
+	static constexpr NullValue null_value;
+
+	static constexpr ArrayValue array0( nullptr, 0u );
+	static constexpr ArrayValue array1( nullptr, 0u );
+
+	static constexpr const ValueBase* array2_storage[]
+	{
+		&string0, &null_value, &number0, &string2,
+	};
+	static constexpr ArrayValue array2( array2_storage, 4u );
+
+	static constexpr const ValueBase* array3_storage[]
+	{
+		&string1, &null_value, &number1, &string2,
+	};
+	static constexpr ArrayValue array3( array3_storage, 4u );
+
+	static constexpr const ValueBase* array4_storage[]
+	{
+		&string1, &null_value, &number2, &string3,
+	};
+	static constexpr ArrayValue array4( array4_storage, 4u );
+
+	static constexpr const ValueBase* array5_storage[]
+	{
+		&number0, &string3,
+	};
+	static constexpr ArrayValue array5( array5_storage, 2u );
+
+	// Empty array equal to itself
+	test_assert( Value(&array0) == Value(&array0) );
+	test_assert( !( Value(&array0) != Value(&array0) ) );
+
+	// Empty array equal to another empty array
+	test_assert( Value(&array0) == Value(&array1) );
+	test_assert( !( Value(&array0) != Value(&array1) ) );
+
+	// Empty array not equal to nonempty array
+	test_assert( Value(&array0) != Value(&array2) );
+	test_assert( !( Value(&array0) == Value(&array2) ) );
+
+	// Nonempty array equal to itself
+	test_assert( Value(&array2) == Value(&array2) );
+	test_assert( !( Value(&array2) != Value(&array2) ) );
+
+	// Different arrays with same element count is not equal
+	test_assert( Value(&array2) != Value(&array3) );
+	test_assert( !( Value(&array2) == Value(&array3) ) );
+
+	// Arrays with same size and elements are equal
+	test_assert( Value(&array3) == Value(&array4) );
+	test_assert( !( Value(&array3) != Value(&array4) ) );
+
+	// Nonempty arrays with different size are not equal
+	test_assert( Value(&array4) != Value(&array5) );
+	test_assert( !( Value(&array4) == Value(&array5) ) );
+}
+
+static void ValueEqualityTest6()
+{
+	// Objects.
+
+	static constexpr StringValue string0( u8"Quick brown fox jumps over the lazy dog" );
+	static constexpr StringValue string1( u8"A" );
+	static constexpr StringValue string2( u8"" );
+	static constexpr StringValue string3( u8"" );
+	static constexpr NumberValue number0( "3.14", 3, 3.14 );
+	static constexpr NumberValue number1( "2.718281828", 2, 2.718281828);
+	static constexpr NumberValue number2( "2.718281828", 2, 2.718281828);
+	static constexpr NullValue null_value;
+
+	static constexpr ObjectValue object0( nullptr, 0u );
+	static constexpr ObjectValue object1( nullptr, 0u );
+
+	static constexpr ObjectValue::ObjectEntry object2_entries[]
+	{
+		{ "A", &string0 }, { "BB", &number1 }, { "Ctror", &null_value },
+	};
+	static constexpr ObjectValue object2( object2_entries, 3u );
+
+	static constexpr ObjectValue::ObjectEntry object3_entries[]
+	{
+		{ "A", &string0 }, { "BB", &number2 }, { "Ctror", &null_value },
+	};
+	static constexpr ObjectValue object3( object3_entries, 3u );
+
+	static constexpr ObjectValue::ObjectEntry object4_entries[]
+	{
+		{ "A", &string0 }, { "BB", &number2 }, { "Ctror", &null_value }, { "Delta", &string2 },
+	};
+	static constexpr ObjectValue object4( object4_entries, 4u );
+
+	static constexpr ObjectValue::ObjectEntry object5_entries[]
+	{
+		{ "A", &string0 }, { "BB", &number2 }, { "Ctror", &null_value }, { "Delta2", &string2 },
+	};
+	static constexpr ObjectValue object5( object5_entries, 4u );
+
+	static constexpr ObjectValue::ObjectEntry object6_entries[]
+	{
+		{ "A", &string0 }, { "BB", &number0 }, { "Ctror", &null_value }, { "Delta", &string2 },
+	};
+	static constexpr ObjectValue object6( object6_entries, 4u );
+
+	// Empty object equal to itself
+	test_assert( Value(&object0) == Value(&object0) );
+	test_assert( !( Value(&object0) != Value(&object0) ) );
+
+	// Empty object equal to another empty object
+	test_assert( Value(&object0) == Value(&object1) );
+	test_assert( !( Value(&object0) != Value(&object1) ) );
+
+	// Empty object not equal to nonempty object
+	test_assert( Value(&object0) != Value(&object2) );
+	test_assert( !( Value(&object0) == Value(&object2) ) );
+
+	// Nonempty object equal to itself
+	test_assert( Value(&object2) == Value(&object2) );
+	test_assert( !( Value(&object2) != Value(&object2) ) );
+
+	// Nonempty object equal to other nonempty object with same content
+	test_assert( Value(&object2) == Value(&object3) );
+	test_assert( !( Value(&object2) != Value(&object3) ) );
+
+	// Nonempty object not equal to object with different size
+	test_assert( Value(&object2) != Value(&object4) );
+	test_assert( !( Value(&object2) == Value(&object4) ) );
+
+	// Nonempty object not equal to object with same size but different keys
+	test_assert( Value(&object4) != Value(&object5) );
+	test_assert( !( Value(&object4) == Value(&object5) ) );
+
+	// Nonempty object not equal to object with same keys but different values
+	test_assert( Value(&object4) != Value(&object6) );
+	test_assert( !( Value(&object4) == Value(&object6) ) );
+}
+
 void RunValueTests()
 {
 	SimpleNullValueTest();
@@ -762,4 +1011,11 @@ void RunValueTests()
 	ObjectIteratorTest1();
 	ObjectIteratorTest2();
 	IteratorsAlgorithms();
+	ValueEqualityTest0();
+	ValueEqualityTest1();
+	ValueEqualityTest2();
+	ValueEqualityTest3();
+	ValueEqualityTest4();
+	ValueEqualityTest5();
+	ValueEqualityTest6();
 }
