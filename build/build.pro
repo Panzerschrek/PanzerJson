@@ -2,7 +2,7 @@ TEMPLATE= app
 CONFIG-= qt
 CONFIG+= c++11
 
-INCLUDEPATH += "../inlcude"
+INCLUDEPATH += "../include"
 INCLUDEPATH += OBJECTS_DIR # For test we need read temporary files, generated from jsons.
 
 QMAKE_CXXFLAGS += -Wextra
@@ -16,6 +16,7 @@ SOURCES += \
 	../tests/constexpr_init_test.cpp \
 	../tests/parser_test.cpp \
 	../tests/parser_errors_test.cpp \
+	../tests/parsers_equality_test.cpp \
 	../tests/tests_main.cpp \
 	../tests/value_test.cpp \
 
