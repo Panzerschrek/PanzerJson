@@ -1,0 +1,7 @@
+{
+    "SomeValue" :
+    {
+        "0" : "Baz",
+        "SomeValue" : "SomeValue"
+    }
+}

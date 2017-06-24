@@ -8,6 +8,7 @@
 #include "gen_numbers_pooling_test.hpp"
 #include "gen_strings_pooling_test.hpp"
 #include "gen_objects_and_arrays_pooling_test.hpp"
+#include "gen_string_values_as_key_reuse_test.hpp"
 
 #include "../include/PanzerJson/parser.hpp"
 #include "tests.hpp"
@@ -54,4 +55,5 @@ void RunParsersEqualityTests()
 //	CHECK_TEST_JSON( numbers_pooling_test )
 	CHECK_TEST_JSON( strings_pooling_test )
 	CHECK_TEST_JSON( objects_and_arrays_pooling_test )
+	CHECK_TEST_JSON( string_values_as_key_reuse_test )
 }

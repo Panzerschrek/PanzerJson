@@ -87,10 +87,12 @@ number_values_pool= dict()
 string_values_pool= dict()
 object_values_pool= dict()
 array_values_pool= dict()
+string_values_data_pool= dict()
 
 # Returns pair of strings.
 # First string - preinitializers, second string - name.
 def WritePanzerJsonValue( json_struct ):
+	global string_values_data_pool
 
 	if type(json_struct) is dict:
 		keys_sorted= sorted( json_struct )
@@ -100,7 +102,15 @@ def WritePanzerJsonValue( json_struct ):
 		for object_key in keys_sorted :
 			member_value= WritePanzerJsonValue( json_struct[object_key] )
 			result_preinitializer= result_preinitializer + member_value[0]
-			result_object_storage= result_object_storage + "\t\t{ " + MakeQuotedEscapedString(object_key) + ", &" + member_value[1] + " },\n"
+
+			# Try reuse storage of existent string value as key.
+			pool_key_data= string_values_data_pool.get( object_key, None )
+			if pool_key_data is not None:
+				key_str= pool_key_data
+			else:
+				key_str= MakeQuotedEscapedString(object_key)
+
+			result_object_storage= result_object_storage + "\t\t{ " + key_str + ", &" + member_value[1] + " },\n"
 
 		# We use pooling for all values. So, if storage is equal to previous objects storage, then, objects are equal.
 		global object_values_pool
@@ -159,6 +169,10 @@ def WritePanzerJsonValue( json_struct ):
 			str_length= str(len(json_struct.encode("utf-8")) + 1) + "u"
 			result_string_storage= "constexpr StringValueWithStorage<" + str_length + "> " + storage_name + \
 			"\n{\n" + "\tStringValue(),\n" + "\t" + quoted_string + "\n};\n\n"
+
+			# Also, save pointer to storage of string value.
+			# We can use this pointer, also, for objects keys.
+			string_values_data_pool[ json_struct ]= storage_name + ".string"
 
 			return [ result_string_storage, var_name ]
 
