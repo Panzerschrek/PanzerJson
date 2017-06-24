@@ -174,7 +174,8 @@ private:
 };
 
 // Class for hight-level json access.
-// TODO - maybe addd some constexpr?
+// Note, that this class is pointer-like. It is lightweight and does not contains
+// any data. Instead, it only usues data from some storage.
 class Value final
 {
 public:

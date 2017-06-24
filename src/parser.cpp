@@ -8,7 +8,7 @@ namespace PanzerJson
 
 // For big powers.
 // Method is faster for big powers - complexity is about O(log2(power)).
-static double TenPowerDouble( const unsigned int power )
+static double TenPowerDouble( const unsigned int power ) noexcept
 {
 	if( power == 0u )
 		return 1.0;
@@ -23,7 +23,7 @@ static double TenPowerDouble( const unsigned int power )
 	return result;
 }
 
-static constexpr size_t PtrAlignedSize( const size_t size )
+static constexpr size_t PtrAlignedSize( const size_t size ) noexcept
 {
 	return ( size + ( sizeof(void*) - 1u ) ) & ~( sizeof(void*) - 1u );
 }
@@ -696,10 +696,12 @@ void Parser::SkipWhitespacesAtEnd()
 
 void Parser::CorrectPointers_r( ValueBase& value )
 {
-
 	switch( value.type )
 	{
 	case ValueBase::Type::Null:
+	case ValueBase::Type::String:
+	case ValueBase::Type::Number:
+	case ValueBase::Type::Bool:
 		break;
 
 	case ValueBase::Type::Object:
@@ -741,15 +743,6 @@ void Parser::CorrectPointers_r( ValueBase& value )
 				CorrectPointers_r( const_cast<ValueBase&>( *array_value.GetElements()[i]) );
 			}
 		}
-		break;
-
-	case ValueBase::Type::String:
-		break;
-
-	case ValueBase::Type::Number:
-		break;
-
-	case ValueBase::Type::Bool:
 		break;
 	};
 }

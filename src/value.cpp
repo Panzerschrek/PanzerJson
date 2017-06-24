@@ -45,7 +45,6 @@ static_assert( sizeof(StringValue) % ptr_size == 0u, "Value classes must have po
 static_assert( sizeof(NumberValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
 static_assert( sizeof(BoolValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
 
-
 static_assert(
 	sizeof(ObjectValueWithEntriesStorage<       0u>) == sizeof(ObjectValue) &&
 	sizeof(ObjectValueWithEntriesStorage<       1u>) == sizeof(ObjectValue) + sizeof(ObjectValue::ObjectEntry) &&
@@ -180,7 +179,6 @@ size_t Value::ElementCount() const noexcept
 
 bool Value::IsMember( const StringType& key ) const noexcept
 {
-	(void)key;
 	if( value_->type == ValueBase::Type::Object )
 		return SearchObject( static_cast<const ObjectValue&>(*value_), key );
 
