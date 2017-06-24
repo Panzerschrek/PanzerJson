@@ -8,6 +8,21 @@
 namespace PanzerJson
 {
 
+template<size_t N>
+class PaddingHelper
+{
+public:
+	constexpr PaddingHelper() noexcept
+		: padding{0u} {}
+
+private:
+	unsigned char padding[N];
+};
+
+template<>
+class PaddingHelper<0u>
+{};
+
 // String type is null-terminated UTF-8.
 // TODO - maybe add support for width encodings?
 // TODO - maybe support string views?
@@ -32,7 +47,9 @@ struct ValueBase
 	{}
 };
 
-struct NullValue final : public ValueBase
+struct NullValue final
+	: private PaddingHelper< sizeof(void*) - sizeof(ValueBase) >
+	, public ValueBase
 {
 	constexpr NullValue() noexcept
 		: ValueBase(Type::Null)
@@ -102,7 +119,11 @@ struct BoolValue final : public ValueBase
 	constexpr BoolValue( const bool in_value ) noexcept
 		: ValueBase(Type::Bool)
 		, value(in_value)
+		, padding{0u}
 	{}
+
+private:
+	unsigned char padding[3u];
 };
 
 // Class for hight-level json access.

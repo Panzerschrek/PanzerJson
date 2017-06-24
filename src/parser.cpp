@@ -23,6 +23,11 @@ static double TenPowerDouble( const unsigned int power )
 	return result;
 }
 
+static constexpr size_t PtrAlignedSize( const size_t size )
+{
+	return ( size + ( sizeof(void*) - 1u ) ) & ~( sizeof(void*) - 1u );
+}
+
 Parser::Parser()
 {}
 
@@ -531,6 +536,9 @@ StringType Parser::ParseString()
 		{
 			++cur_;
 			result_.storage.push_back('\0');
+			 // Reconstruct alignment.
+			// Stringrs are only objects in storage, which is not pointer-aligned.
+			result_.storage.resize( PtrAlignedSize( result_.storage.size() ) );
 			return static_cast<StringType>(nullptr) + offset;
 		}
 		else if( *cur_ == '\\' )

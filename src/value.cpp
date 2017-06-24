@@ -14,7 +14,7 @@ constexpr bool is64bit= sizeof(void*) > 4u;
 constexpr size_t ptr_size= sizeof(void*);
 
 static_assert(
-	sizeof(NullValue) <= sizeof(int32_t), // enum value
+	sizeof(NullValue) == ptr_size, // enum value
 	"NullValue expected to be smaller");
 
 static_assert(
@@ -34,8 +34,16 @@ static_assert(
 	"NumberValue expected to be smaller");
 
 static_assert(
-	sizeof(BoolValue) <= sizeof(int32_t) * 2u, // enum value + bool
+	sizeof(BoolValue) == ( is64bit ? (ptr_size) : ( 2u * ptr_size ) ), // enum value + bool
 	"BoolValue expected to be smaller");
+
+static_assert( sizeof(NullValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
+static_assert( sizeof(ObjectValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
+static_assert( sizeof(ObjectValue::ObjectEntry) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
+static_assert( sizeof(ArrayValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
+static_assert( sizeof(StringValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
+static_assert( sizeof(NumberValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
+static_assert( sizeof(BoolValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
 
 static_assert( sizeof(Value::UniversalIterator) <= sizeof(void*) * 2u, "Universal iterator is too large." );
 static_assert( sizeof(Value::ArrayIterator) == sizeof(void*), "Specialized iterator must have pointer size." );
