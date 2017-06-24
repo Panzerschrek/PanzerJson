@@ -109,14 +109,26 @@ struct ArrayValueWithElementsStorage final
 	const ValueBase* elements[N];
 };
 
-struct StringValue final : public ValueBase
+struct StringValue final
+	: private PaddingHelper< sizeof(void*) - sizeof(ValueBase) >
+	, public ValueBase
 {
-	StringType str;
-
-	constexpr StringValue( const StringType& in_str ) noexcept
+	constexpr StringValue() noexcept
 		: ValueBase(Type::String)
-		, str(in_str)
 	{}
+
+	const char* GetString() const noexcept
+	{
+		// String storage placed just after StringValue.
+		return reinterpret_cast<const char*>(this + 1u);
+	}
+};
+
+template<size_t N>
+struct StringValueWithStorage final
+{
+	StringValue value;
+	char string[N]; // Null-terminated
 };
 
 struct NumberValue final : public ValueBase

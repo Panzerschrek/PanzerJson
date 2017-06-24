@@ -26,7 +26,7 @@ static_assert(
 	"Array expected to be smaller");
 
 static_assert(
-	sizeof(StringValue) <= ptr_size * 2u, // enum value + ptr
+	sizeof(StringValue) == ptr_size, // enum value
 	"StringValue expected to be smaller");
 
 static_assert(
@@ -57,6 +57,15 @@ static_assert(
 	sizeof(ArrayValueWithElementsStorage<       1u>) == sizeof(ArrayValue) + sizeof(const ValueBase*) &&
 	sizeof(ArrayValueWithElementsStorage<10000000u>) == sizeof(ArrayValue) + sizeof(const ValueBase*) * 10000000u,
 	"Arrays`s elements storage must have no gaps between array value and elements." );
+
+// String storage placed just after string value.
+// But, string strorage can have size, bigger, than needed, because padding added for enum/int32 values.
+static_assert(
+	sizeof(StringValueWithStorage<                   0u>) == sizeof(StringValue) &&
+	sizeof(StringValueWithStorage<                   1u>) == sizeof(StringValue) + sizeof(int32_t) &&
+	sizeof(StringValueWithStorage< sizeof(int32_t)     >) == sizeof(StringValue) + sizeof(int32_t) &&
+	sizeof(StringValueWithStorage< sizeof(int32_t) + 1u>) == sizeof(StringValue) + sizeof(int32_t) * 2u,
+	"Bad string storage" );
 
 static_assert( sizeof(Value::UniversalIterator) <= ptr_size * 2u, "Universal iterator is too large." );
 static_assert( sizeof(Value::ArrayIterator) == ptr_size, "Specialized iterator must have pointer size." );
@@ -121,8 +130,8 @@ static bool ValuesAreEqual_r( const ValueBase& l, const ValueBase& r ) noexcept
 	case ValueBase::Type::String:
 		return
 			StringCompare(
-				static_cast<const StringValue&>(l).str,
-				static_cast<const StringValue&>(r).str ) == 0;
+				static_cast<const StringValue&>(l).GetString(),
+				static_cast<const StringValue&>(r).GetString() ) == 0;
 
 	case ValueBase::Type::Number:
 		{
@@ -274,7 +283,7 @@ StringType Value::AsString() const noexcept
 	case ValueBase::Type::Array:
 		return "";
 	case ValueBase::Type::String:
-		return static_cast<const StringValue&>(*value_).str;
+		return static_cast<const StringValue&>(*value_).GetString();
 	case ValueBase::Type::Number:
 		return static_cast<const NumberValue&>(*value_).str;
 	case ValueBase::Type::Bool:

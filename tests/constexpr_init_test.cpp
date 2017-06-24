@@ -26,9 +26,23 @@ static constexpr ObjectValueWithEntriesStorage<2u> simple_object_storage1
 	}
 };
 
-static constexpr StringValue strings[]
+static constexpr StringValueWithStorage<4u> strings[]
 {
-	StringValue( "Foo" ), StringValue( "Bar" ), StringValue( "Baz" ),
+	{
+		StringValue(), "Foo",
+	},
+	{
+		StringValue(), "Bar",
+	},
+	{
+		StringValue(), "Baz",
+	},
+};
+
+static constexpr StringValueWithStorage< sizeof("u8Сложная utf-8 öžçšüÖ строка") > string_utf8
+{
+	StringValue(),
+	"u8Сложная utf-8 öžçšüÖ строка"
 };
 
 static constexpr BoolValue bool_value_false(false);
@@ -37,7 +51,7 @@ static constexpr BoolValue bool_value_true(true);
 static constexpr ArrayValueWithElementsStorage<3u> simple_array_storage0
 {
 	ArrayValue(3u),
-	{ &strings[0], &strings[1], &strings[2] }
+	{ &strings[0].value, &strings[1].value, &string_utf8.value }
 };
 
 static constexpr ArrayValueWithElementsStorage<1u> simple_array_storage1

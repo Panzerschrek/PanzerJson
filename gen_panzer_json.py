@@ -149,10 +149,19 @@ def WritePanzerJsonValue( json_struct ):
 		# Use strings pooling - emit same value once.
 		global string_values_pool
 		pool_value = string_values_pool.get( json_struct, None )
+
 		if pool_value is None:
-			var_name= "string_value" + NextCounter()
+
+			storage_name= "string_storage" + NextCounter()
+			var_name= storage_name + ".value"
 			string_values_pool[ json_struct ]= var_name
-			return [ "constexpr StringValue " + var_name + "(" + MakeQuotedEscapedString(json_struct) + ");\n\n", var_name ]
+			quoted_string= MakeQuotedEscapedString(json_struct)
+			str_length= str(len(json_struct.encode("utf-8")) + 1) + "u"
+			result_string_storage= "constexpr StringValueWithStorage<" + str_length + "> " + storage_name + \
+			"\n{\n" + "\tStringValue(),\n" + "\t" + quoted_string + "\n};\n\n"
+
+			return [ result_string_storage, var_name ]
+
 		else:
 			return [ "", pool_value ]
 

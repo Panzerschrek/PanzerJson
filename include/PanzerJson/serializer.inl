@@ -84,7 +84,7 @@ void Serializer::Serialize_r( Stream& stream, const ValueBase& value )
 		break;
 
 	case ValueBase::Type::String:
-		SerializeString( stream, static_cast<const StringValue&>(value).str );
+		SerializeString( stream, static_cast<const StringValue&>(value).GetString() );
 		break;
 
 	case ValueBase::Type::Number:

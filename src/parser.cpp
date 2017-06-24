@@ -215,17 +215,18 @@ const ValueBase* Parser::Parse_r()
 	// String
 	case '"':
 		{
-			const StringType str= ParseString();
+			// Allocate StringValue, then parse string.
+			// In result, string storage will be exactly after StringValue.
+			const size_t offset= result_.storage.size();
+			result_.storage.resize( result_.storage.size() + sizeof(StringValue) );
+
+			ParseString();
 			if( result_.error != Result::Error::NoError )
 				return nullptr;
 
-			const size_t offset= result_.storage.size();
-			result_.storage.resize( result_.storage.size() + sizeof(StringValue) );
 			StringValue* const string_value=
 				reinterpret_cast<StringValue*>( result_.storage.data() + offset );
-
 			string_value->type= ValueBase::Type::String;
-			string_value->str= str;
 
 			return reinterpret_cast<StringValue*>( static_cast<char*>(nullptr) + offset );
 
@@ -741,10 +742,6 @@ void Parser::CorrectPointers_r( ValueBase& value )
 		break;
 
 	case ValueBase::Type::String:
-		{
-			StringValue& string_value= static_cast<StringValue&>(value);
-			string_value.str= CorrectStringPointer( string_value.str );
-		}
 		break;
 
 	case ValueBase::Type::Number:
