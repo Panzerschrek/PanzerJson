@@ -89,13 +89,24 @@ struct ObjectValueWithEntriesStorage final
 struct ArrayValue final : public ValueBase
 {
 	uint32_t object_count;
-	const ValueBase* const* objects;
 
-	constexpr ArrayValue( const ValueBase* const* const in_objects, const uint32_t in_object_count ) noexcept
+	explicit constexpr ArrayValue( const uint32_t in_object_count ) noexcept
 		: ValueBase(Type::Array)
 		, object_count(in_object_count)
-		, objects(in_objects)
 	{}
+
+	const ValueBase* const* GetElements() const noexcept
+	{
+		// Arrays stores their elements just after it.
+		return reinterpret_cast<const ValueBase* const*>(this + 1u);
+	}
+};
+
+template<size_t N>
+struct ArrayValueWithElementsStorage final
+{
+	ArrayValue value;
+	const ValueBase* elements[N];
 };
 
 struct StringValue final : public ValueBase

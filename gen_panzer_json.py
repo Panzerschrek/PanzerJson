@@ -126,7 +126,7 @@ def WritePanzerJsonValue( json_struct ):
 		for array_member in json_struct :
 			member_value= WritePanzerJsonValue( array_member )
 			result_preinitializer= result_preinitializer + member_value[0]
-			result_array_storage= result_array_storage  + "\t&" + member_value[1] + ",\n"
+			result_array_storage= result_array_storage  + "\t\t&" + member_value[1] + ",\n"
 
 		# We use pooling for all values. So, if storage is equal to previous objects storage, then, objects are equal.
 		global array_values_pool
@@ -135,14 +135,15 @@ def WritePanzerJsonValue( json_struct ):
 			return [ "", pool_array ]
 
 		arr_storage_name= "array_storage" + NextCounter()
-		arr_value_name= "array_value" + NextCounter()
+		arr_value_name= arr_storage_name + ".value"
 
 		array_values_pool[ result_array_storage ]= arr_value_name
 
-		result_array_storage= "constexpr const ValueBase* " + arr_storage_name + "[]\n{\n" + result_array_storage + "};\n"
-		result_array= "constexpr const ArrayValue " + arr_value_name + "( " + arr_storage_name + ", " + str(len(json_struct)) + " );\n\n"
+		object_count= str(len(json_struct)) + "u"
+		result_array_storage= "constexpr const ArrayValueWithElementsStorage<" + object_count + "> " + arr_storage_name + \
+		"\n{\n" + "\tArrayValue(" + object_count + "),\n" + "\t{\n" + result_array_storage + "\t}\n" + "};\n"
 
-		return [ result_preinitializer + result_array_storage + result_array, arr_value_name ]
+		return [ result_preinitializer + result_array_storage, arr_value_name ]
 
 	if type(json_struct) is str:
 		# Use strings pooling - emit same value once.

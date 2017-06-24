@@ -190,25 +190,25 @@ const ValueBase* Parser::Parse_r()
 			} // while true
 		}
 
-		const size_t array_element_count= array_elements_stack_.size() - array_elements_stack_pos;
+		const size_t element_count= array_elements_stack_.size() - array_elements_stack_pos;
+		const size_t offset= result_.storage.size();
+		result_.storage.resize(
+			result_.storage.size() +
+			sizeof(ArrayValue) +
+			sizeof(const ValueBase*) * element_count );
 
-		const size_t values_offset= result_.storage.size();
-		result_.storage.resize( result_.storage.size() + sizeof(const ValueBase*) * array_element_count );
-		const ValueBase* * const array_values=
-			reinterpret_cast<const ObjectValue::ValueBase**>( result_.storage.data() + values_offset );
-		std::memcpy( array_values, array_elements_stack_.data() + array_elements_stack_pos, sizeof(const ValueBase*) * array_element_count );
-
-		const size_t array_offset= result_.storage.size();
-		result_.storage.resize( result_.storage.size() + sizeof(ArrayValue) );
-		ArrayValue* const array_value= reinterpret_cast<ArrayValue*>( result_.storage.data() + array_offset );
-
+		ArrayValue* const array_value= reinterpret_cast<ArrayValue*>( result_.storage.data() + offset );
 		array_value->type= ValueBase::Type::Array;
-		array_value->objects= reinterpret_cast<const ObjectValue::ValueBase**>( static_cast<char*>(nullptr) + values_offset );
-		array_value->object_count= static_cast<uint32_t>(array_element_count);
+		array_value->object_count= static_cast<uint32_t>(element_count);
+
+		std::memcpy(
+			result_.storage.data() + offset + sizeof(ArrayValue),
+			array_elements_stack_.data() + array_elements_stack_pos,
+			sizeof(const ValueBase*) * element_count );
 
 		array_elements_stack_.resize(array_elements_stack_pos);
 
-		return reinterpret_cast<ArrayValue*>( static_cast<char*>(nullptr) + array_offset );
+		return reinterpret_cast<ArrayValue*>( static_cast<char*>(nullptr) + offset );
 	}
 	break;
 
@@ -729,17 +729,13 @@ void Parser::CorrectPointers_r( ValueBase& value )
 		{
 			ArrayValue& array_value= static_cast<ArrayValue&>(value);
 
-			const size_t objects_offset=
-				reinterpret_cast<const unsigned char*>(array_value.objects) - static_cast<const unsigned char*>(nullptr);
-			array_value.objects= reinterpret_cast<const ValueBase* const*>( objects_offset + result_.storage.data() );
-
 			for( size_t i= 0u; i < array_value.object_count; i++ )
 			{
 				const size_t offset=
-					reinterpret_cast<const unsigned char*>(array_value.objects[i]) - static_cast<const unsigned char*>(nullptr);
-				const_cast<const ValueBase*&>(array_value.objects[i])= reinterpret_cast<const ValueBase*>( offset + result_.storage.data() );
+					reinterpret_cast<const unsigned char*>(array_value.GetElements()[i]) - static_cast<const unsigned char*>(nullptr);
+				const_cast<const ValueBase*&>(array_value.GetElements()[i])= reinterpret_cast<const ValueBase*>( offset + result_.storage.data() );
 
-				CorrectPointers_r( const_cast<ValueBase&>(*array_value.objects[i]) );
+				CorrectPointers_r( const_cast<ValueBase&>( *array_value.GetElements()[i]) );
 			}
 		}
 		break;

@@ -74,7 +74,7 @@ void Serializer::Serialize_r( Stream& stream, const ValueBase& value )
 
 			for( size_t i= 0u; i < array.object_count; i++ )
 			{
-				Serialize_r( stream, *array.objects[i] );
+				Serialize_r( stream, *array.GetElements()[i] );
 				if( i < array.object_count - 1u )
 					stream << ",";
 			}

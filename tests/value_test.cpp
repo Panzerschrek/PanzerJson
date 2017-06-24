@@ -95,14 +95,16 @@ static void SimpleArrayValueTest()
 	static constexpr BoolValue bool_value( true );
 	static constexpr StringValue string_value( "a" );
 	static constexpr NumberValue number_value( "1458.4", 1458, 1458.4 );
-	static constexpr const ValueBase* objects[3u]
+	static constexpr ArrayValueWithElementsStorage<3u> array_storage
 	{
-		&bool_value ,
-		&string_value,
-		&number_value,
+		ArrayValue(3u),
+		{
+			&bool_value,
+			&string_value,
+			&number_value,
+		}
 	};
-	static constexpr ArrayValue array_value( objects, 3u );
-	Value value(&array_value);
+	Value value(&array_storage.value);
 
 	test_assert( value.GetType() == ValueBase::Type::Array );
 	test_assert( value.ElementCount() == 3u );
@@ -124,13 +126,15 @@ static void ObjectValueSearchTest()
 	static constexpr BoolValue bool_value1( false );
 	static constexpr StringValue string_value1( "wtf" );
 	static constexpr NumberValue number_value1( "-25", -25, -25.0);
-	static constexpr const ValueBase* array_objects[3]
+	static constexpr ArrayValueWithElementsStorage<3u> array_storage
 	{
-		&bool_value0 ,
-		&string_value1,
-		&number_value1,
+		ArrayValue(3u),
+		{
+			&bool_value0 ,
+			&string_value1,
+			&number_value1,
+		}
 	};
-	static constexpr ArrayValue array_value( array_objects, 3u );
 	static constexpr ObjectValueWithEntriesStorage<7u> object_storage
 	{
 		ObjectValue(7u),
@@ -141,7 +145,7 @@ static void ObjectValueSearchTest()
 			{ "death", &bool_value1 },
 			{ "element", &string_value1 },
 			{ "fruit", &number_value1 },
-			{ "g not gay", &array_value },
+			{ "g not gay", &array_storage.value },
 		}
 	};
 	Value value( &object_storage.value );
@@ -172,13 +176,15 @@ static void UniversalIteratorTest0()
 	static constexpr BoolValue bool_value1( false );
 	static constexpr StringValue string_value1( "wtf" );
 	static constexpr NumberValue number_value1( "-25", -25, -25.0);
-	static constexpr const ValueBase* array_objects[3]
+	static constexpr ArrayValueWithElementsStorage<3u> array_storage
 	{
-		&bool_value0 ,
-		&string_value1,
-		&number_value1,
+		ArrayValue(3u),
+		{
+			&bool_value0 ,
+			&string_value1,
+			&number_value1,
+		}
 	};
-	static constexpr ArrayValue array_value( array_objects, 3u );
 	static constexpr ObjectValueWithEntriesStorage<7u> object_storage
 	{
 		ObjectValue(7u),
@@ -189,7 +195,7 @@ static void UniversalIteratorTest0()
 			{ "death", &bool_value1 },
 			{ "element", &string_value1 },
 			{ "fruit", &number_value1 },
-			{ "g not gay", &array_value },
+			{ "g not gay", &array_storage.value },
 		}
 	};
 	Value value( &object_storage.value );
@@ -266,15 +272,17 @@ static void UniversalIteratorTest1()
 	static constexpr StringValue string_value( "a" );
 	static constexpr BoolValue bool_value( true );
 	static constexpr ObjectValue object_value( 0u );
-	static constexpr const ValueBase* objects[4u]
+	static constexpr ArrayValueWithElementsStorage<4u> array_storage
 	{
-		&number_value,
-		&string_value,
-		&bool_value ,
-		&object_value,
+		ArrayValue(4u),
+		{
+			&number_value,
+			&string_value,
+			&bool_value ,
+			&object_value,
+		}
 	};
-	static constexpr ArrayValue array_value( objects, 4u );
-	Value value(&array_value);
+	Value value(&array_storage.value);
 
 	const auto it_begin= value.begin();
 	const auto it_end= value.end();
@@ -297,7 +305,7 @@ static void UniversalIteratorTest1()
 		test_assert(iteration_count == value.ElementCount());
 		for( unsigned int i= 0u; i < iteration_count; i++ )
 		{
-			Value original_value(objects[i]);
+			Value original_value(array_storage.elements[i]);
 			test_assert(iterated_values[i].GetType() == original_value.GetType());
 			test_assert(iterated_values[i].AsInt64() == original_value.AsInt64());
 			test_assert(iterated_values[i].AsDouble() == original_value.AsDouble());
@@ -364,7 +372,7 @@ static void UniversalIteratorTest2()
 static void UniversalIteratorTest3()
 {
 	// Iterate over empty array.
-	ArrayValue empty_array_value(nullptr, 0u);
+	ArrayValue empty_array_value(0u);
 	Value value( &empty_array_value );
 
 	const auto it_begin= value.begin();
@@ -419,15 +427,17 @@ static void ArrayIteratorTest0()
 	static constexpr StringValue string_value( "a" );
 	static constexpr BoolValue bool_value( true );
 	static constexpr ObjectValue object_value( 0u );
-	static constexpr const ValueBase* objects[4u]
+	static constexpr ArrayValueWithElementsStorage<4u> array_storage
 	{
-		&number_value,
-		&string_value,
-		&bool_value ,
-		&object_value,
+		ArrayValue(4u),
+		{
+			&number_value,
+			&string_value,
+			&bool_value ,
+			&object_value,
+		}
 	};
-	static constexpr ArrayValue array_value( objects, 4u );
-	Value value(&array_value);
+	Value value(&array_storage.value);
 
 	const auto it_begin= value.array_begin();
 	const auto it_end= value.array_end();
@@ -450,7 +460,7 @@ static void ArrayIteratorTest0()
 		test_assert(iteration_count == value.ElementCount());
 		for( unsigned int i= 0u; i < iteration_count; i++ )
 		{
-			Value original_value(objects[i]);
+			Value original_value(array_storage.elements[i]);
 			test_assert(iterated_values[i].GetType() == original_value.GetType());
 			test_assert(iterated_values[i].AsInt64() == original_value.AsInt64());
 			test_assert(iterated_values[i].AsDouble() == original_value.AsDouble());
@@ -496,7 +506,7 @@ static void ArrayIteratorTest0()
 static void ArrayIteratorTest1()
 {
 	// Iterate over empty array.
-	ArrayValue empty_array_value(nullptr, 0u);
+	ArrayValue empty_array_value(0u);
 	Value value( &empty_array_value );
 
 	const auto it_begin= value.array_begin();
@@ -565,13 +575,15 @@ static void ObjectIteratorTest0()
 	static constexpr BoolValue bool_value1( false );
 	static constexpr StringValue string_value1( "wtf" );
 	static constexpr NumberValue number_value1( "-25", -25, -25.0);
-	static constexpr const ValueBase* array_objects[3]
+	static constexpr ArrayValueWithElementsStorage<3u> array_storage
 	{
-		&bool_value0 ,
-		&string_value1,
-		&number_value1,
+		ArrayValue(3u),
+		{
+			&bool_value0 ,
+			&string_value1,
+			&number_value1,
+		}
 	};
-	static constexpr ArrayValue array_value( array_objects, 3u );
 	static constexpr ObjectValueWithEntriesStorage<7u> object_storage
 	{
 		ObjectValue(7u),
@@ -582,7 +594,7 @@ static void ObjectIteratorTest0()
 			{ "death", &bool_value1 },
 			{ "element", &string_value1 },
 			{ "fruit", &number_value1 },
-			{ "g not gay", &array_value },
+			{ "g not gay", &array_storage.value },
 		}
 	};
 	Value value( &object_storage.value );
@@ -700,13 +712,15 @@ static void ObjectIteratorTest2()
 	static constexpr BoolValue bool_value( false );
 	test_iterate( Value( &bool_value ) );
 
-	static constexpr const ValueBase* objects[2]
+	static constexpr ArrayValueWithElementsStorage<2u> array_storage
 	{
-		&nuber_value,
-		&string_value,
+		ArrayValue(2u),
+		{
+			&nuber_value,
+			&string_value,
+		}
 	};
-	static constexpr ArrayValue array_value( objects, 2u );
-	test_iterate( Value( &array_value ) );
+	test_iterate( Value( &array_storage.value ) );
 }
 
 static void IteratorsAlgorithms()
@@ -719,14 +733,16 @@ static void IteratorsAlgorithms()
 		NumberValue( "", -14, -14.0 ),
 		NumberValue( "", 25, 25.0 ),
 	};
-	static constexpr const ValueBase* array_objects[3]
+	static constexpr ArrayValueWithElementsStorage<3u> array_storage
 	{
-		&number_values[0],
-		&number_values[1],
-		&number_values[2],
+		ArrayValue(3u),
+		{
+			&number_values[0],
+			&number_values[1],
+			&number_values[2],
+		}
 	};
-	static constexpr ArrayValue array_value( array_objects, 3u );
-	Value value( &array_value );
+	Value value( &array_storage.value );
 
 	const auto pred= []( Value v ) { return v.AsDouble() >= 0.0f; };
 	const auto object_pred= []( Value::ObjectIterator::value_type v ) { return v.second.AsDouble() >= 0.0f;; };
@@ -863,32 +879,32 @@ static void ValueEqualityTest5()
 	static constexpr NumberValue number2( "2.718281828", 2, 2.718281828);
 	static constexpr NullValue null_value;
 
-	static constexpr ArrayValue array0( nullptr, 0u );
-	static constexpr ArrayValue array1( nullptr, 0u );
+	static constexpr ArrayValue array0( 0u );
+	static constexpr ArrayValue array1( 0u );
 
-	static constexpr const ValueBase* array2_storage[]
+	static constexpr ArrayValueWithElementsStorage<4u> array2
 	{
-		&string0, &null_value, &number0, &string2,
+		ArrayValue(4u),
+		{ &string0, &null_value, &number0, &string2, }
 	};
-	static constexpr ArrayValue array2( array2_storage, 4u );
 
-	static constexpr const ValueBase* array3_storage[]
+	static constexpr ArrayValueWithElementsStorage<4u> array3
 	{
-		&string1, &null_value, &number1, &string2,
+		ArrayValue(4u),
+		{ &string1, &null_value, &number1, &string2, }
 	};
-	static constexpr ArrayValue array3( array3_storage, 4u );
 
-	static constexpr const ValueBase* array4_storage[]
+	static constexpr ArrayValueWithElementsStorage<4u> array4
 	{
-		&string1, &null_value, &number2, &string3,
+		ArrayValue(4u),
+		{ &string1, &null_value, &number2, &string3, }
 	};
-	static constexpr ArrayValue array4( array4_storage, 4u );
 
-	static constexpr const ValueBase* array5_storage[]
+	static constexpr ArrayValueWithElementsStorage<2u> array5
 	{
-		&number0, &string3,
+		ArrayValue(2u),
+		{ &number0, &string3, }
 	};
-	static constexpr ArrayValue array5( array5_storage, 2u );
 
 	// Empty array equal to itself
 	test_assert( Value(&array0) == Value(&array0) );
@@ -899,24 +915,24 @@ static void ValueEqualityTest5()
 	test_assert( !( Value(&array0) != Value(&array1) ) );
 
 	// Empty array not equal to nonempty array
-	test_assert( Value(&array0) != Value(&array2) );
-	test_assert( !( Value(&array0) == Value(&array2) ) );
+	test_assert( Value(&array0) != Value(&array2.value) );
+	test_assert( !( Value(&array0) == Value(&array2.value) ) );
 
 	// Nonempty array equal to itself
-	test_assert( Value(&array2) == Value(&array2) );
-	test_assert( !( Value(&array2) != Value(&array2) ) );
+	test_assert( Value(&array2.value) == Value(&array2.value) );
+	test_assert( !( Value(&array2.value) != Value(&array2.value) ) );
 
 	// Different arrays with same element count is not equal
-	test_assert( Value(&array2) != Value(&array3) );
-	test_assert( !( Value(&array2) == Value(&array3) ) );
+	test_assert( Value(&array2.value) != Value(&array3.value) );
+	test_assert( !( Value(&array2.value) == Value(&array3.value) ) );
 
 	// Arrays with same size and elements are equal
-	test_assert( Value(&array3) == Value(&array4) );
-	test_assert( !( Value(&array3) != Value(&array4) ) );
+	test_assert( Value(&array3.value) == Value(&array4.value) );
+	test_assert( !( Value(&array3.value) != Value(&array4.value) ) );
 
 	// Nonempty arrays with different size are not equal
-	test_assert( Value(&array4) != Value(&array5) );
-	test_assert( !( Value(&array4) == Value(&array5) ) );
+	test_assert( Value(&array4.value) != Value(&array5.value) );
+	test_assert( !( Value(&array4.value) == Value(&array5.value) ) );
 }
 
 static void ValueEqualityTest6()
@@ -994,6 +1010,7 @@ static void ValueEqualityTest6()
 
 void RunValueTests()
 {
+
 	SimpleNullValueTest();
 	SimpleNumberValueTest();
 	SimpleStringValueTest();

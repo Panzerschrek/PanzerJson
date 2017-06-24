@@ -49,6 +49,10 @@ static_assert( sizeof(BoolValue) % ptr_size == 0u, "Value classes must have poin
 static_assert( sizeof(ObjectValueWithEntriesStorage<0u>) == sizeof(ObjectValue), "Empty value storage must be equal to object size" );
 static_assert( sizeof(ObjectValueWithEntriesStorage<1u>) == sizeof(ObjectValue) + sizeof(ObjectValue::ObjectEntry), "" );
 
+// Arrays`s elements storage must have no gaps between array value and elements.
+static_assert( sizeof(ArrayValueWithElementsStorage<0u>) == sizeof(ArrayValue), "Empty array storage must be equal to array size" );
+static_assert( sizeof(ArrayValueWithElementsStorage<1u>) == sizeof(ArrayValue) + sizeof(const ValueBase*), "" );
+
 static_assert( sizeof(Value::UniversalIterator) <= sizeof(void*) * 2u, "Universal iterator is too large." );
 static_assert( sizeof(Value::ArrayIterator) == sizeof(void*), "Specialized iterator must have pointer size." );
 static_assert( sizeof(Value::ObjectIterator) == sizeof(void*), "Specialized iterator must have pointer size." );
@@ -103,7 +107,7 @@ static bool ValuesAreEqual_r( const ValueBase& l, const ValueBase& r ) noexcept
 
 			for( uint32_t i= 0u; i < l_array.object_count; i++ )
 			{
-				if( !ValuesAreEqual_r( *l_array.objects[i], *r_array.objects[i] ) )
+				if( !ValuesAreEqual_r( *l_array.GetElements()[i], *r_array.GetElements()[i] ) )
 					return false;
 			}
 			return true;
@@ -166,7 +170,7 @@ Value Value::operator[]( const size_t array_index ) const noexcept
 	{
 		const ArrayValue& array_value= static_cast<const ArrayValue&>(*value_);
 		if( array_index < array_value.object_count )
-			return Value( array_value.objects[ array_index ] );
+			return Value( array_value.GetElements()[ array_index ] );
 	}
 
 	return g_null_value;
@@ -300,7 +304,7 @@ Value::UniversalIterator Value::begin() const noexcept
 		break;
 
 	case ValueBase::Type::Array:
-		ptr.array_value= static_cast<const ArrayValue&>(*value_).objects;
+		ptr.array_value= static_cast<const ArrayValue&>(*value_).GetElements();
 		type= ValueBase::Type::Array;
 		break;
 
@@ -333,7 +337,7 @@ Value::UniversalIterator Value::end() const noexcept
 	case ValueBase::Type::Array:
 		{
 			const ArrayValue& array_value= static_cast<const ArrayValue&>(*value_);
-			ptr.array_value= array_value.objects + array_value.object_count;
+			ptr.array_value= array_value.GetElements() + array_value.object_count;
 			type= ValueBase::Type::Array;
 		}
 		break;
@@ -351,7 +355,7 @@ Value::UniversalIterator Value::end() const noexcept
 Value::ArrayIterator Value::array_begin() const noexcept
 {
 	if( value_->type == ValueBase::Type::Array )
-		return ArrayIterator( static_cast<const ArrayValue&>(*value_).objects );
+		return ArrayIterator( static_cast<const ArrayValue&>(*value_).GetElements() );
 	else
 		return ArrayIterator( nullptr );
 }
@@ -361,7 +365,7 @@ Value::ArrayIterator Value::array_end() const noexcept
 	if( value_->type == ValueBase::Type::Array )
 	{
 		const ArrayValue& array_value= static_cast<const ArrayValue&>(*value_);
-		return ArrayIterator( array_value.objects + array_value.object_count );
+		return ArrayIterator( array_value.GetElements() + array_value.object_count );
 	}
 	else
 		return ArrayIterator( nullptr );
