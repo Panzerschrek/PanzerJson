@@ -416,13 +416,6 @@ const ValueBase* Parser::Parse_r()
 					result_double_val*= -1.0;
 			}
 
-			// Allocate string value.
-			const size_t str_size= cur_ - num_start;
-			const size_t str_offset= result_.storage.size();
-			result_.storage.resize( result_.storage.size() + PtrAlignedSize( str_size + 1u ) );
-			std::memcpy( result_.storage.data() + str_offset, num_start, str_size );
-			result_.storage[ str_offset + str_size ]= '\0';
-
 			// Allocate number value.
 			const size_t offset= result_.storage.size();
 			result_.storage.resize( result_.storage.size() + sizeof(NumberValue) );
@@ -430,9 +423,18 @@ const ValueBase* Parser::Parse_r()
 
 			// Fill data.
 			value->type= ValueBase::Type::Number;
-			value->str= str_offset + static_cast<const char*>(nullptr);
 			value->int_value= result_int_val;
 			value->double_value= result_double_val;
+
+			// Allocate string value.
+			if( save_number_strings_ )
+			{
+				const size_t str_size= cur_ - num_start;
+				const size_t str_offset= result_.storage.size();
+				result_.storage.resize( result_.storage.size() + PtrAlignedSize( str_size + 1u ) );
+				std::memcpy( result_.storage.data() + str_offset, num_start, str_size );
+				result_.storage[ str_offset + str_size ]= '\0';
+			}
 
 			return reinterpret_cast<NumberValue*>( static_cast<char*>(nullptr) + offset );
 		}
@@ -745,10 +747,6 @@ void Parser::CorrectPointers_r( ValueBase& value )
 		break;
 
 	case ValueBase::Type::Number:
-		{
-			NumberValue& number_value= static_cast<NumberValue&>(value);
-			number_value.str= CorrectStringPointer( number_value.str );
-		}
 		break;
 
 	case ValueBase::Type::Bool:
@@ -820,24 +818,34 @@ Parser::ResultPtr Parser::Parse( const char* const json_text, const size_t json_
 	return std::move(result);
 }
 
-void Parser::SetEnableNoncompositeJsonRoot( const bool enable )
+void Parser::SetEnableNoncompositeJsonRoot( const bool enable ) noexcept
 {
 	enable_noncomposite_json_root_= enable;
 }
 
-bool Parser::GetEnableNoncompositeJsonRoot() const
+bool Parser::GetEnableNoncompositeJsonRoot() const noexcept
 {
 	return enable_noncomposite_json_root_;
 }
 
-void Parser::SetEnableComments( const bool enable )
+void Parser::SetEnableComments( const bool enable ) noexcept
 {
 	enable_comments_= enable;
 }
 
-bool Parser::GetEnableCommetns() const
+bool Parser::GetEnableCommetns() const noexcept
 {
 	return enable_comments_;
+}
+
+void Parser::SetSaveNumberStrings( const bool save ) noexcept
+{
+	save_number_strings_= save;
+}
+
+bool Parser::GetSaveNumberStrings() const noexcept
+{
+	return save_number_strings_;
 }
 
 void Parser::ResetCaches()

@@ -30,7 +30,7 @@ static_assert(
 	"StringValue expected to be smaller");
 
 static_assert(
-	sizeof(NumberValue) <= ( is64bit ? ( 2u * ptr_size + 2u * sizeof(int64_t) ) : ( sizeof(int32_t) + ptr_size + 2u * sizeof(int64_t) ) ), // enum value + ptr + int64 + int64
+	sizeof(NumberValue) == ( sizeof(int32_t) * 2u + sizeof(int64_t) + sizeof(double) ), // enum value + padding + int64 + double
 	"NumberValue expected to be smaller");
 
 static_assert(
@@ -66,6 +66,15 @@ static_assert(
 	sizeof(StringValueWithStorage< sizeof(int32_t)     >) == sizeof(StringValue) + sizeof(int32_t) &&
 	sizeof(StringValueWithStorage< sizeof(int32_t) + 1u>) == sizeof(StringValue) + sizeof(int32_t) * 2u,
 	"Bad string storage" );
+
+// String storage placed just after number value.
+// But, string strorage can have size, bigger, than needed, because padding added for int64/double values.
+static_assert(
+	sizeof(NumberValueWithStringStorage<                   0u>) == sizeof(NumberValue) &&
+	sizeof(NumberValueWithStringStorage<                   1u>) == sizeof(NumberValue) + sizeof(int64_t) &&
+	sizeof(NumberValueWithStringStorage< sizeof(int64_t)     >) == sizeof(NumberValue) + sizeof(int64_t) &&
+	sizeof(NumberValueWithStringStorage< sizeof(int64_t) + 1u>) == sizeof(NumberValue) + sizeof(int64_t) * 2u,
+	"Bad number string storage" );
 
 static_assert( sizeof(Value::UniversalIterator) <= ptr_size * 2u, "Universal iterator is too large." );
 static_assert( sizeof(Value::ArrayIterator) == ptr_size, "Specialized iterator must have pointer size." );
@@ -285,7 +294,7 @@ StringType Value::AsString() const noexcept
 	case ValueBase::Type::String:
 		return static_cast<const StringValue&>(*value_).GetString();
 	case ValueBase::Type::Number:
-		return static_cast<const NumberValue&>(*value_).str;
+		return static_cast<const NumberValue&>(*value_).GetString();
 	case ValueBase::Type::Bool:
 		return static_cast<const BoolValue&>(*value_).value ? "true" : "false";
 	};

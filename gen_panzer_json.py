@@ -25,10 +25,6 @@ def NextCounter():
 	return str(result)
 
 
-def Stringify( something ):
-	return "\"" + str(something) + "\""
-
-
 def PrepareIntValue( int_value ):
 
 	int_value = int(int_value)
@@ -79,7 +75,6 @@ def MakeQuotedEscapedString( s ):
 	return result
 
 # Global flags for values pooling.
-# TODO - try to add pooling for all values.
 null_value_emitted= False
 false_bool_value_emitted= False
 true_bool_value_emitted = False
@@ -88,6 +83,9 @@ string_values_pool= dict()
 object_values_pool= dict()
 array_values_pool= dict()
 string_values_data_pool= dict()
+
+# Some params
+save_string_for_numbers= False
 
 # Returns pair of strings.
 # First string - preinitializers, second string - name.
@@ -186,9 +184,23 @@ def WritePanzerJsonValue( json_struct ):
 		pool_key = str(float(json_struct)) + "___" + str(int(json_struct))
 		pool_value = number_values_pool.get( pool_key, None )
 		if pool_value is None:
-			var_name= "number_value" + NextCounter()
+
+			storage_name= "number_storage" + NextCounter()
+			var_name= storage_name + ".value"
 			number_values_pool[ pool_key ]= var_name
-			return [ "constexpr NumberValue " + var_name + "(" + Stringify(json_struct) + ", " + PrepareIntValue(json_struct) + ", " + str(float(json_struct)) + ");\n\n", var_name ]
+
+			global save_string_for_numbers
+			if save_string_for_numbers:
+				num_str= str(json_struct)
+				num_str_quoted= "\"" + num_str + "\""
+				result_number_storage= "constexpr NumberValueWithStringStorage<" + str(len(num_str) + 1) + "u> " + storage_name + \
+				"\n{\n" + "\tNumberValue( " + PrepareIntValue(json_struct) + ", " + str(float(json_struct)) + ", true ),\n" + "\t" + num_str_quoted + "\n};\n\n"
+			else:
+				result_number_storage= "constexpr NumberValueWithStringStorage<0u> " + storage_name + \
+				"\n{\n" + "\tNumberValue( " + PrepareIntValue(json_struct) + ", " + str(float(json_struct)) + ", false )" + "\n};\n\n"
+
+			return [ result_number_storage, var_name ]
+
 		else:
 			return [ "", pool_value ]
 
@@ -249,10 +261,17 @@ def main():
 	parser.add_argument( "-i", help= "input json file", type=str )
 	parser.add_argument( "-o", help= "output cpp/hpp file name base", type=str )
 	parser.add_argument( "-n", help= "name of result variable", type=str )
+	parser.add_argument( "-s", help= "save or not strings for numbers", action="store_true" )
 
 	args= parser.parse_args()
 
+	save_string_for_numbers= args.s
+
 	print( "Convert \"" + args.i + "\" to \"" + args.o + "\"" )
+	if save_string_for_numbers:
+		print( "Save numbers strings" )
+	else:
+		print( "Do not save numbers strings" )
 
 	cpp_file= args.o + ".cpp"
 	hpp_file= args.o + ".hpp"

@@ -133,17 +133,30 @@ struct StringValueWithStorage final
 
 struct NumberValue final : public ValueBase
 {
-	StringType str;
+	bool has_string;
 	int64_t int_value;
 	double double_value;
 
 	// Creator (script or parser) must store original str, and correctly convert to int/double values.
-	constexpr NumberValue( const char* const str, const int64_t in_int_value, const double in_double_value ) noexcept
+	constexpr NumberValue( const int64_t in_int_value, const double in_double_value, const bool in_has_string= false ) noexcept
 		: ValueBase(Type::Number)
-		, str(str)
+		, has_string(in_has_string)
 		, int_value(in_int_value)
 		, double_value(in_double_value)
 	{}
+
+	const char* GetString() const noexcept
+	{
+		// String storage placed just after StringValue.
+		return has_string ? reinterpret_cast<const char*>(this + 1u) : "";
+	}
+};
+
+template<size_t N>
+struct NumberValueWithStringStorage final
+{
+	NumberValue value;
+	char string[N];
 };
 
 struct BoolValue final : public ValueBase

@@ -28,8 +28,12 @@ static void SimpleNullValueTest()
 
 static void SimpleNumberValueTest()
 {
-	static constexpr NumberValue number_value( "test string", 42, -14.7 );
-	Value value(&number_value);
+	static constexpr NumberValueWithStringStorage<12u> number_storage
+	{
+		NumberValue( 42, -14.7, true ),
+		"test string"
+	};
+	Value value( &number_storage.value );
 
 	test_assert( value.GetType() == ValueBase::Type::Number );
 	test_assert( value.AsInt() == 42 );
@@ -72,7 +76,7 @@ static void SimpleObjectValueTest()
 {
 	static constexpr BoolValue bool_value( true );
 	STRING_STORAGE( string_storage, "a" );
-	static constexpr NumberValue number_value( "1458.4", 1458, 1458.4 );
+	static constexpr NumberValue number_value( 1458, 1458.4 );
 	static constexpr ObjectValueWithEntriesStorage<3u> object_torage
 	{
 		ObjectValue(3u),
@@ -104,7 +108,7 @@ static void SimpleArrayValueTest()
 {
 	static constexpr BoolValue bool_value( true );
 	STRING_STORAGE( string_storage, "a" );
-	static constexpr NumberValue number_value( "1458.4", 1458, 1458.4 );
+	static constexpr NumberValue number_value( 1458, 1458.4 );
 	static constexpr ArrayValueWithElementsStorage<3u> array_storage
 	{
 		ArrayValue(3u),
@@ -132,10 +136,10 @@ static void ObjectValueSearchTest()
 {
 	static constexpr BoolValue bool_value0( true );
 	STRING_STORAGE( string_storage0, "a" );
-	static constexpr NumberValue number_value0( "1458.4", 1458, 1458.4 );
+	static constexpr NumberValue number_value0( 1458, 1458.4 );
 	static constexpr BoolValue bool_value1( false );
 	STRING_STORAGE( string_storage1, "wtf" );
-	static constexpr NumberValue number_value1( "-25", -25, -25.0);
+	static constexpr NumberValue number_value1( -25, -25.0);
 	static constexpr ArrayValueWithElementsStorage<3u> array_storage
 	{
 		ArrayValue(3u),
@@ -182,17 +186,25 @@ static void UniversalIteratorTest0()
 
 	static constexpr BoolValue bool_value0( true );
 	STRING_STORAGE( string_storage0, "a" );
-	static constexpr NumberValue number_value0( "1458.4", 1458, 1458.4 );
+	static constexpr NumberValueWithStringStorage<7u> number_storage0
+	{
+		NumberValue( 1458, 1458.4 ),
+		"1458.4"
+	};
 	static constexpr BoolValue bool_value1( false );
 	STRING_STORAGE( string_storage1, "wtf" );
-	static constexpr NumberValue number_value1( "-25", -25, -25.0);
+	static constexpr NumberValueWithStringStorage<6u> number_storage1
+	{
+		NumberValue( -25, -25.0 ),
+		"-25.0"
+	};
 	static constexpr ArrayValueWithElementsStorage<3u> array_storage
 	{
 		ArrayValue(3u),
 		{
 			&bool_value0 ,
 			&string_storage1.value,
-			&number_value1,
+			&number_storage1.value,
 		}
 	};
 	static constexpr ObjectValueWithEntriesStorage<7u> object_storage
@@ -201,10 +213,10 @@ static void UniversalIteratorTest0()
 		{
 			{ "apple", &bool_value0 },
 			{ "beer", &string_storage0.value },
-			{ "candy", &number_value0 },
+			{ "candy", &number_storage0.value },
 			{ "death", &bool_value1 },
 			{ "element", &string_storage1.value },
-			{ "fruit", &number_value1 },
+			{ "fruit", &number_storage1.value },
 			{ "g not gay", &array_storage.value },
 		}
 	};
@@ -278,7 +290,11 @@ static void UniversalIteratorTest1()
 {
 	// Universal iterator over array.
 
-	static constexpr NumberValue number_value( "1458.4", 1458, 1458.4 );
+	static constexpr NumberValueWithStringStorage<7u> number_storage
+	{
+		NumberValue( 1458, 1458.4 ),
+		"1458.4",
+	};
 	STRING_STORAGE( string_storage, "a" );
 	static constexpr BoolValue bool_value( true );
 	static constexpr ObjectValue object_value( 0u );
@@ -286,7 +302,7 @@ static void UniversalIteratorTest1()
 	{
 		ArrayValue(4u),
 		{
-			&number_value,
+			&number_storage.value,
 			&string_storage.value,
 			&bool_value ,
 			&object_value,
@@ -424,7 +440,7 @@ static void UniversalIteratorTest4()
 	STRING_STORAGE( string_storage, "wtf" );
 	test_iterate( Value( &string_storage.value ) );
 
-	static constexpr NumberValue nuber_value( "4578.5", 4578, 4578.5 );
+	static constexpr NumberValue nuber_value( 4578, 4578.5 );
 	test_iterate( Value( &nuber_value ) );
 
 	static constexpr BoolValue bool_value( false );
@@ -433,7 +449,11 @@ static void UniversalIteratorTest4()
 
 static void ArrayIteratorTest0()
 {
-	static constexpr NumberValue number_value( "1458.4", 1458, 1458.4 );
+	static constexpr NumberValueWithStringStorage<7u> number_storage
+	{
+		NumberValue( 1458, 1458.4 ),
+		"1458.4"
+	};
 	STRING_STORAGE( string_storage, "a" );
 	static constexpr BoolValue bool_value( true );
 	static constexpr ObjectValue object_value( 0u );
@@ -441,7 +461,7 @@ static void ArrayIteratorTest0()
 	{
 		ArrayValue(4u),
 		{
-			&number_value,
+			&number_storage.value,
 			&string_storage.value,
 			&bool_value ,
 			&object_value,
@@ -558,7 +578,7 @@ static void ArrayIteratorTest2()
 	STRING_STORAGE( string_storage, "wtf" );
 	test_iterate( Value( &string_storage.value ) );
 
-	static constexpr NumberValue nuber_value( "4578.5", 4578, 4578.5 );
+	static constexpr NumberValue nuber_value( 4578, 4578.5 );
 	test_iterate( Value( &nuber_value ) );
 
 	static constexpr BoolValue bool_value( false );
@@ -581,17 +601,25 @@ static void ObjectIteratorTest0()
 
 	static constexpr BoolValue bool_value0( true );
 	STRING_STORAGE( string_storage0, "a" );
-	static constexpr NumberValue number_value0( "1458.4", 1458, 1458.4 );
+	static constexpr NumberValueWithStringStorage<7u> number_storage0
+	{
+		NumberValue( 1458, 1458.4 ),
+		"1458.4"
+	};
 	static constexpr BoolValue bool_value1( false );
 	STRING_STORAGE( string_storage1, "wtf" );
-	static constexpr NumberValue number_value1( "-25", -25, -25.0);
+	static constexpr NumberValueWithStringStorage<7u> number_storage1
+	{
+		NumberValue( -25, -25.0 ),
+		"-25"
+	};
 	static constexpr ArrayValueWithElementsStorage<3u> array_storage
 	{
 		ArrayValue(3u),
 		{
 			&bool_value0 ,
 			&string_storage1.value,
-			&number_value1,
+			&number_storage1.value,
 		}
 	};
 	static constexpr ObjectValueWithEntriesStorage<7u> object_storage
@@ -600,10 +628,10 @@ static void ObjectIteratorTest0()
 		{
 			{ "apple", &bool_value0 },
 			{ "beer", &string_storage0.value },
-			{ "candy", &number_value0 },
+			{ "candy", &number_storage0.value },
 			{ "death", &bool_value1 },
 			{ "element", &string_storage1.value },
-			{ "fruit", &number_value1 },
+			{ "fruit", &number_storage1.value },
 			{ "g not gay", &array_storage.value },
 		}
 	};
@@ -716,7 +744,7 @@ static void ObjectIteratorTest2()
 	STRING_STORAGE( string_storage, "wtf" );
 	test_iterate( Value( &string_storage.value ) );
 
-	static constexpr NumberValue nuber_value( "4578.5", 4578, 4578.5 );
+	static constexpr NumberValue nuber_value( 4578, 4578.5 );
 	test_iterate( Value( &nuber_value ) );
 
 	static constexpr BoolValue bool_value( false );
@@ -739,9 +767,9 @@ static void IteratorsAlgorithms()
 
 	static constexpr NumberValue number_values[3]
 	{
-		NumberValue( "", 158, 158.0 ),
-		NumberValue( "", -14, -14.0 ),
-		NumberValue( "", 25, 25.0 ),
+		NumberValue( 158, 158.0 ),
+		NumberValue( -14, -14.0 ),
+		NumberValue( 25, 25.0 ),
 	};
 	static constexpr ArrayValueWithElementsStorage<3u> array_storage
 	{
@@ -796,9 +824,9 @@ static void ValueEqualityTest2()
 {
 	// Basic numbers equality test.
 
-	static constexpr NumberValue number0( "3.14", 3, 3.14 );
-	static constexpr NumberValue number1( "3.14", 3, 3.14 );
-	static constexpr NumberValue number2( "2.718281828", 2, 2.718281828);
+	static constexpr NumberValue number0( 3, 3.14 );
+	static constexpr NumberValue number1( 3, 3.14 );
+	static constexpr NumberValue number2( 2, 2.718281828 );
 	const Value number_value0( &number0 );
 	const Value number_value1( &number1 );
 	const Value number_value2( &number2 );
@@ -819,8 +847,8 @@ static void ValueEqualityTest2()
 static void ValueEqualityTest3()
 {
 	// Numbers with same integer part but with dirrerent double part are not equal.
-	static constexpr NumberValue number0( "3.14", 3, 3.14 );
-	static constexpr NumberValue number1( "3.15", 3, 3.15 );
+	static constexpr NumberValue number0( 3, 3.14 );
+	static constexpr NumberValue number1( 3, 3.15 );
 	const Value number_value0( &number0 );
 	const Value number_value1( &number1 );
 
@@ -885,9 +913,9 @@ static void ValueEqualityTest5()
 	STRING_STORAGE( string1, u8"A" );
 	STRING_STORAGE( string2, u8"" );
 	STRING_STORAGE( string3, u8"" );
-	static constexpr NumberValue number0( "3.14", 3, 3.14 );
-	static constexpr NumberValue number1( "2.718281828", 2, 2.718281828);
-	static constexpr NumberValue number2( "2.718281828", 2, 2.718281828);
+	static constexpr NumberValue number0( 3, 3.14 );
+	static constexpr NumberValue number1( 2, 2.718281828 );
+	static constexpr NumberValue number2( 2, 2.718281828 );
 	static constexpr NullValue null_value;
 
 	static constexpr ArrayValue array0( 0u );
@@ -952,9 +980,9 @@ static void ValueEqualityTest6()
 
 	STRING_STORAGE( string0, u8"Quick brown fox jumps over the lazy dog" );
 	STRING_STORAGE( string1, u8"" );
-	static constexpr NumberValue number0( "3.14", 3, 3.14 );
-	static constexpr NumberValue number1( "2.718281828", 2, 2.718281828);
-	static constexpr NumberValue number2( "2.718281828", 2, 2.718281828);
+	static constexpr NumberValue number0( 3, 3.14 );
+	static constexpr NumberValue number1( 2, 2.718281828 );
+	static constexpr NumberValue number2( 2, 2.718281828 );
 	static constexpr NullValue null_value;
 
 	static constexpr ObjectValue object0( 0u );

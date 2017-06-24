@@ -58,11 +58,16 @@ public:
 	ResultPtr Parse( const char* json_text, size_t json_text_length );
 
 	// Enable json root to be not only array or object.
-	void SetEnableNoncompositeJsonRoot( bool enable );
-	bool GetEnableNoncompositeJsonRoot() const;
+	void SetEnableNoncompositeJsonRoot( bool enable ) noexcept;
+	bool GetEnableNoncompositeJsonRoot() const noexcept;
 
-	void SetEnableComments( bool enable );
-	bool GetEnableCommetns() const;
+	// Enable C++ like comments.
+	void SetEnableComments( bool enable ) noexcept;
+	bool GetEnableCommetns() const noexcept;
+
+	// Save or not original strings from json for numbers.
+	void SetSaveNumberStrings( bool save ) noexcept;
+	bool GetSaveNumberStrings() const noexcept;
 
 	void ResetCaches();
 
@@ -84,6 +89,7 @@ private:
 
 	bool enable_noncomposite_json_root_= true;
 	bool enable_comments_= true;
+	bool save_number_strings_= false;
 
 	std::vector<unsigned char> number_digits_;
 

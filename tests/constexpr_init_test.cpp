@@ -66,7 +66,11 @@ static constexpr ArrayValueWithElementsStorage<1u> simple_array_storage2
 	{ &simple_null_value }
 };
 
-static constexpr NumberValue number_value( "42", 42, 42.0 );
+static constexpr NumberValueWithStringStorage<3u> number_storage
+{
+	NumberValue( 42, 42.1, true ),
+	"42"
+};
 
 }
 
