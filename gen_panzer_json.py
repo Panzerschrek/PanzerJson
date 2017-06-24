@@ -125,7 +125,7 @@ def WritePanzerJsonValue( json_struct ):
 
 		object_count= str(len(json_struct)) + "u"
 		result_object_storage= "constexpr const ObjectValueWithEntriesStorage<" + object_count + "> " + obj_storage_name + \
-		"\n{\n" + "\tObjectValue(" + object_count + "),\n" + "\t{\n" + result_object_storage + "\t}\n" + "};\n"
+		"\n{\n" + "\tObjectValue(" + object_count + "),\n" + "\t{\n" + result_object_storage + "\t}\n" + "};\n\n"
 
 		return [ result_preinitializer + result_object_storage, obj_value_name ]
 
@@ -151,7 +151,7 @@ def WritePanzerJsonValue( json_struct ):
 
 		object_count= str(len(json_struct)) + "u"
 		result_array_storage= "constexpr const ArrayValueWithElementsStorage<" + object_count + "> " + arr_storage_name + \
-		"\n{\n" + "\tArrayValue(" + object_count + "),\n" + "\t{\n" + result_array_storage + "\t}\n" + "};\n"
+		"\n{\n" + "\tArrayValue(" + object_count + "),\n" + "\t{\n" + result_array_storage + "\t}\n" + "};\n\n"
 
 		return [ result_preinitializer + result_array_storage, arr_value_name ]
 
