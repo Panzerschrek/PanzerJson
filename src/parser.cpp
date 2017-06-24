@@ -419,7 +419,7 @@ const ValueBase* Parser::Parse_r()
 			// Allocate string value.
 			const size_t str_size= cur_ - num_start;
 			const size_t str_offset= result_.storage.size();
-			result_.storage.resize( result_.storage.size() + str_size + 1u );
+			result_.storage.resize( result_.storage.size() + PtrAlignedSize( str_size + 1u ) );
 			std::memcpy( result_.storage.data() + str_offset, num_start, str_size );
 			result_.storage[ str_offset + str_size ]= '\0';
 
