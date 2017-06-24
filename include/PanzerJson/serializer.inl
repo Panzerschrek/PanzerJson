@@ -88,7 +88,16 @@ void Serializer::Serialize_r( Stream& stream, const ValueBase& value )
 		break;
 
 	case ValueBase::Type::Number:
-		stream << static_cast<const NumberValue&>(value).GetString();
+		{
+			const NumberValue& number_value= static_cast<const NumberValue&>(value);
+			if( number_value.has_string )
+				stream << number_value.GetString();
+			else
+			{
+				GenNumberValueString( number_value );
+				stream << num_str_;
+			}
+		}
 		break;
 
 	case ValueBase::Type::Bool:

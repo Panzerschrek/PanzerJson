@@ -12,6 +12,7 @@ PYTHON= "C:/Documents And Settings/Panzerschrek/Python/Python.exe"
 
 SOURCES += \
 	../src/parser.cpp \
+	../src/serializer.cpp \
 	../src/value.cpp \
 	../tests/constexpr_init_test.cpp \
 	../tests/parser_test.cpp \

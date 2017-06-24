@@ -224,7 +224,7 @@ public:
 	// Returns original string for string values.
 	// Returns empty string for object and array values.
 	// Returns empty string for null values.
-	// Returns string representation for numbers. TODO - does this need?
+	// Returns string representation for numbers. If parser didn`t save original value, empty string returned.
 	// Returns "true" or "false" for bool values.
 	StringType AsString() const noexcept;
 
