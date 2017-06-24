@@ -51,3 +51,4 @@ JSON_TESTS+= \
 	../tests/test_jsons/numbers_pooling_test.json \
 	../tests/test_jsons/strings_pooling_test.json \
 	../tests/test_jsons/objects_and_arrays_pooling_test.json \
+	../tests/test_jsons/string_values_as_key_reuse_test.json \

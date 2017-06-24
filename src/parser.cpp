@@ -118,24 +118,24 @@ const ValueBase* Parser::Parse_r()
 		}
 
 		const size_t entries_count= object_entries_stack_.size() - object_entries_stack_pos;
+		const size_t offset= result_.storage.size();
+		result_.storage.resize(
+			result_.storage.size() +
+			sizeof(ObjectValue) +
+			sizeof(ObjectValue::ObjectEntry) * entries_count );
 
-		const size_t entries_offset= result_.storage.size();
-		result_.storage.resize( result_.storage.size() + sizeof(ObjectValue::ObjectEntry) * entries_count );
-		ObjectValue::ObjectEntry* const result_entries=
-			reinterpret_cast<ObjectValue::ObjectEntry*>( result_.storage.data() + entries_offset );
-		std::memcpy( result_entries, object_entries_stack_.data() + object_entries_stack_pos, sizeof(ObjectValue::ObjectEntry) * entries_count );
-
-		const size_t object_offset= result_.storage.size();
-		result_.storage.resize( result_.storage.size() + sizeof(ObjectValue) );
-		ObjectValue* const object_value= reinterpret_cast<ObjectValue*>( result_.storage.data() + object_offset );
-
+		ObjectValue* const object_value= reinterpret_cast<ObjectValue*>( result_.storage.data() + offset );
 		object_value->type= ValueBase::Type::Object;
-		object_value->sub_objects= reinterpret_cast<ObjectValue::ObjectEntry*>( static_cast<char*>(nullptr) + entries_offset );
 		object_value->object_count= static_cast<uint32_t>(entries_count);
+
+		std::memcpy(
+			result_.storage.data() + offset + sizeof(ObjectValue),
+			object_entries_stack_.data() + object_entries_stack_pos,
+			sizeof(ObjectValue::ObjectEntry) * entries_count );
 
 		object_entries_stack_.resize(object_entries_stack_pos);
 
-		return reinterpret_cast<ObjectValue*>( static_cast<char*>(nullptr) + object_offset );
+		return reinterpret_cast<ObjectValue*>( static_cast<char*>(nullptr) + offset );
 	}
 	break;
 
@@ -190,42 +190,43 @@ const ValueBase* Parser::Parse_r()
 			} // while true
 		}
 
-		const size_t array_element_count= array_elements_stack_.size() - array_elements_stack_pos;
+		const size_t element_count= array_elements_stack_.size() - array_elements_stack_pos;
+		const size_t offset= result_.storage.size();
+		result_.storage.resize(
+			result_.storage.size() +
+			sizeof(ArrayValue) +
+			sizeof(const ValueBase*) * element_count );
 
-		const size_t values_offset= result_.storage.size();
-		result_.storage.resize( result_.storage.size() + sizeof(const ValueBase*) * array_element_count );
-		const ValueBase* * const array_values=
-			reinterpret_cast<const ObjectValue::ValueBase**>( result_.storage.data() + values_offset );
-		std::memcpy( array_values, array_elements_stack_.data() + array_elements_stack_pos, sizeof(const ValueBase*) * array_element_count );
-
-		const size_t array_offset= result_.storage.size();
-		result_.storage.resize( result_.storage.size() + sizeof(ArrayValue) );
-		ArrayValue* const array_value= reinterpret_cast<ArrayValue*>( result_.storage.data() + array_offset );
-
+		ArrayValue* const array_value= reinterpret_cast<ArrayValue*>( result_.storage.data() + offset );
 		array_value->type= ValueBase::Type::Array;
-		array_value->objects= reinterpret_cast<const ObjectValue::ValueBase**>( static_cast<char*>(nullptr) + values_offset );
-		array_value->object_count= static_cast<uint32_t>(array_element_count);
+		array_value->object_count= static_cast<uint32_t>(element_count);
+
+		std::memcpy(
+			result_.storage.data() + offset + sizeof(ArrayValue),
+			array_elements_stack_.data() + array_elements_stack_pos,
+			sizeof(const ValueBase*) * element_count );
 
 		array_elements_stack_.resize(array_elements_stack_pos);
 
-		return reinterpret_cast<ArrayValue*>( static_cast<char*>(nullptr) + array_offset );
+		return reinterpret_cast<ArrayValue*>( static_cast<char*>(nullptr) + offset );
 	}
 	break;
 
 	// String
 	case '"':
 		{
-			const StringType str= ParseString();
+			// Allocate StringValue, then parse string.
+			// In result, string storage will be exactly after StringValue.
+			const size_t offset= result_.storage.size();
+			result_.storage.resize( result_.storage.size() + sizeof(StringValue) );
+
+			ParseString();
 			if( result_.error != Result::Error::NoError )
 				return nullptr;
 
-			const size_t offset= result_.storage.size();
-			result_.storage.resize( result_.storage.size() + sizeof(StringValue) );
 			StringValue* const string_value=
 				reinterpret_cast<StringValue*>( result_.storage.data() + offset );
-
 			string_value->type= ValueBase::Type::String;
-			string_value->str= str;
 
 			return reinterpret_cast<StringValue*>( static_cast<char*>(nullptr) + offset );
 
@@ -415,13 +416,6 @@ const ValueBase* Parser::Parse_r()
 					result_double_val*= -1.0;
 			}
 
-			// Allocate string value.
-			const size_t str_size= cur_ - num_start;
-			const size_t str_offset= result_.storage.size();
-			result_.storage.resize( result_.storage.size() + str_size + 1u );
-			std::memcpy( result_.storage.data() + str_offset, num_start, str_size );
-			result_.storage[ str_offset + str_size ]= '\0';
-
 			// Allocate number value.
 			const size_t offset= result_.storage.size();
 			result_.storage.resize( result_.storage.size() + sizeof(NumberValue) );
@@ -429,9 +423,18 @@ const ValueBase* Parser::Parse_r()
 
 			// Fill data.
 			value->type= ValueBase::Type::Number;
-			value->str= str_offset + static_cast<const char*>(nullptr);
 			value->int_value= result_int_val;
 			value->double_value= result_double_val;
+
+			// Allocate string value.
+			if( save_number_strings_ )
+			{
+				const size_t str_size= cur_ - num_start;
+				const size_t str_offset= result_.storage.size();
+				result_.storage.resize( result_.storage.size() + PtrAlignedSize( str_size + 1u ) );
+				std::memcpy( result_.storage.data() + str_offset, num_start, str_size );
+				result_.storage[ str_offset + str_size ]= '\0';
+			}
 
 			return reinterpret_cast<NumberValue*>( static_cast<char*>(nullptr) + offset );
 		}
@@ -703,13 +706,9 @@ void Parser::CorrectPointers_r( ValueBase& value )
 		{
 			ObjectValue& object_value= static_cast<ObjectValue&>(value);
 
-			const size_t entries_offset=
-				reinterpret_cast<const unsigned char*>(object_value.sub_objects) - static_cast<const unsigned char*>(nullptr);
-			object_value.sub_objects= reinterpret_cast<const ObjectValue::ObjectEntry*>( entries_offset + result_.storage.data() );
-
 			for( size_t i= 0u; i < object_value.object_count; i++ )
 			{
-				ObjectValue::ObjectEntry& entry= const_cast<ObjectValue::ObjectEntry&>(object_value.sub_objects[i]);
+				ObjectValue::ObjectEntry& entry= const_cast<ObjectValue::ObjectEntry&>(object_value.GetEntries()[i]);
 				entry.key= CorrectStringPointer( entry.key );
 
 				const size_t offset=
@@ -720,8 +719,8 @@ void Parser::CorrectPointers_r( ValueBase& value )
 			}
 
 			std::sort(
-				const_cast<ObjectValue::ObjectEntry*>(object_value.sub_objects),
-				const_cast<ObjectValue::ObjectEntry*>(object_value.sub_objects) + object_value.object_count,
+				const_cast<ObjectValue::ObjectEntry*>(object_value.GetEntries()),
+				const_cast<ObjectValue::ObjectEntry*>(object_value.GetEntries()) + object_value.object_count,
 				[](const ObjectValue::ObjectEntry& l, const ObjectValue::ObjectEntry& r ) -> bool
 				{
 					return StringCompare( l.key, r.key ) < 0;
@@ -733,33 +732,21 @@ void Parser::CorrectPointers_r( ValueBase& value )
 		{
 			ArrayValue& array_value= static_cast<ArrayValue&>(value);
 
-			const size_t objects_offset=
-				reinterpret_cast<const unsigned char*>(array_value.objects) - static_cast<const unsigned char*>(nullptr);
-			array_value.objects= reinterpret_cast<const ValueBase* const*>( objects_offset + result_.storage.data() );
-
 			for( size_t i= 0u; i < array_value.object_count; i++ )
 			{
 				const size_t offset=
-					reinterpret_cast<const unsigned char*>(array_value.objects[i]) - static_cast<const unsigned char*>(nullptr);
-				const_cast<const ValueBase*&>(array_value.objects[i])= reinterpret_cast<const ValueBase*>( offset + result_.storage.data() );
+					reinterpret_cast<const unsigned char*>(array_value.GetElements()[i]) - static_cast<const unsigned char*>(nullptr);
+				const_cast<const ValueBase*&>(array_value.GetElements()[i])= reinterpret_cast<const ValueBase*>( offset + result_.storage.data() );
 
-				CorrectPointers_r( const_cast<ValueBase&>(*array_value.objects[i]) );
+				CorrectPointers_r( const_cast<ValueBase&>( *array_value.GetElements()[i]) );
 			}
 		}
 		break;
 
 	case ValueBase::Type::String:
-		{
-			StringValue& string_value= static_cast<StringValue&>(value);
-			string_value.str= CorrectStringPointer( string_value.str );
-		}
 		break;
 
 	case ValueBase::Type::Number:
-		{
-			NumberValue& number_value= static_cast<NumberValue&>(value);
-			number_value.str= CorrectStringPointer( number_value.str );
-		}
 		break;
 
 	case ValueBase::Type::Bool:
@@ -831,24 +818,34 @@ Parser::ResultPtr Parser::Parse( const char* const json_text, const size_t json_
 	return std::move(result);
 }
 
-void Parser::SetEnableNoncompositeJsonRoot( const bool enable )
+void Parser::SetEnableNoncompositeJsonRoot( const bool enable ) noexcept
 {
 	enable_noncomposite_json_root_= enable;
 }
 
-bool Parser::GetEnableNoncompositeJsonRoot() const
+bool Parser::GetEnableNoncompositeJsonRoot() const noexcept
 {
 	return enable_noncomposite_json_root_;
 }
 
-void Parser::SetEnableComments( const bool enable )
+void Parser::SetEnableComments( const bool enable ) noexcept
 {
 	enable_comments_= enable;
 }
 
-bool Parser::GetEnableCommetns() const
+bool Parser::GetEnableCommetns() const noexcept
 {
 	return enable_comments_;
+}
+
+void Parser::SetSaveNumberStrings( const bool save ) noexcept
+{
+	save_number_strings_= save;
+}
+
+bool Parser::GetSaveNumberStrings() const noexcept
+{
+	return save_number_strings_;
 }
 
 void Parser::ResetCaches()

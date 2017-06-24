@@ -64,52 +64,99 @@ struct ObjectValue final : public ValueBase
 		const ValueBase* value;
 	};
 
-	// WARNING! SubObjects must be sorted by key.
 	uint32_t object_count;
-	const ObjectEntry* sub_objects;
 
-	constexpr ObjectValue( const ObjectEntry* const in_sub_objects, const uint32_t in_object_count ) noexcept
+	explicit constexpr ObjectValue( const uint32_t in_object_count ) noexcept
 		: ValueBase(Type::Object)
 		, object_count(in_object_count)
-		, sub_objects(in_sub_objects)
 	{}
+
+	const ObjectEntry* GetEntries() const noexcept
+	{
+		// Objects stores their members just after it.
+		return reinterpret_cast<const ObjectEntry*>(this + 1u);
+	}
+};
+
+template<size_t N>
+struct ObjectValueWithEntriesStorage final
+{
+	ObjectValue value;
+	// WARNING! Entries must be sorted by key!
+	ObjectValue::ObjectEntry entries[N];
 };
 
 struct ArrayValue final : public ValueBase
 {
 	uint32_t object_count;
-	const ValueBase* const* objects;
 
-	constexpr ArrayValue( const ValueBase* const* const in_objects, const uint32_t in_object_count ) noexcept
+	explicit constexpr ArrayValue( const uint32_t in_object_count ) noexcept
 		: ValueBase(Type::Array)
 		, object_count(in_object_count)
-		, objects(in_objects)
 	{}
+
+	const ValueBase* const* GetElements() const noexcept
+	{
+		// Arrays stores their elements just after it.
+		return reinterpret_cast<const ValueBase* const*>(this + 1u);
+	}
 };
 
-struct StringValue final : public ValueBase
+template<size_t N>
+struct ArrayValueWithElementsStorage final
 {
-	StringType str;
+	ArrayValue value;
+	const ValueBase* elements[N];
+};
 
-	constexpr StringValue( const StringType& in_str ) noexcept
+struct StringValue final
+	: private PaddingHelper< sizeof(void*) - sizeof(ValueBase) >
+	, public ValueBase
+{
+	constexpr StringValue() noexcept
 		: ValueBase(Type::String)
-		, str(in_str)
 	{}
+
+	const char* GetString() const noexcept
+	{
+		// String storage placed just after StringValue.
+		return reinterpret_cast<const char*>(this + 1u);
+	}
+};
+
+template<size_t N>
+struct StringValueWithStorage final
+{
+	StringValue value;
+	char string[N]; // Null-terminated
 };
 
 struct NumberValue final : public ValueBase
 {
-	StringType str;
+	bool has_string;
 	int64_t int_value;
 	double double_value;
 
 	// Creator (script or parser) must store original str, and correctly convert to int/double values.
-	constexpr NumberValue( const char* const str, const int64_t in_int_value, const double in_double_value ) noexcept
+	constexpr NumberValue( const int64_t in_int_value, const double in_double_value, const bool in_has_string= false ) noexcept
 		: ValueBase(Type::Number)
-		, str(str)
+		, has_string(in_has_string)
 		, int_value(in_int_value)
 		, double_value(in_double_value)
 	{}
+
+	const char* GetString() const noexcept
+	{
+		// String storage placed just after StringValue.
+		return has_string ? reinterpret_cast<const char*>(this + 1u) : "";
+	}
+};
+
+template<size_t N>
+struct NumberValueWithStringStorage final
+{
+	NumberValue value;
+	char string[N];
 };
 
 struct BoolValue final : public ValueBase

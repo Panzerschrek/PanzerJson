@@ -18,19 +18,19 @@ static_assert(
 	"NullValue expected to be smaller");
 
 static_assert(
-	sizeof(ObjectValue) <= ( is64bit ? ( ptr_size * 2u ) : ( sizeof(int32_t) * 2u + ptr_size ) ), // enum value + uint32 + ptr
+	sizeof(ObjectValue) == ( is64bit ? ( ptr_size ) : ( sizeof(int32_t) * 2u ) ), // enum value + uint32
 	"ObjectValue expected to be smaller");
 
 static_assert(
-	sizeof(ArrayValue ) <= ( is64bit ? ( ptr_size * 2u ) : ( sizeof(int32_t) * 2u + ptr_size ) ), // enum value + uint32 + ptr
+	sizeof(ArrayValue ) == ( is64bit ? ( ptr_size ) : ( sizeof(int32_t) * 2u ) ), // enum value + uint32
 	"Array expected to be smaller");
 
 static_assert(
-	sizeof(StringValue) <= ptr_size * 2u, // enum value + ptr
+	sizeof(StringValue) == ptr_size, // enum value
 	"StringValue expected to be smaller");
 
 static_assert(
-	sizeof(NumberValue) <= ( is64bit ? ( 2u * ptr_size + 2u * sizeof(int64_t) ) : ( sizeof(int32_t) + ptr_size + 2u * sizeof(int64_t) ) ), // enum value + ptr + int64 + int64
+	sizeof(NumberValue) == ( sizeof(int32_t) * 2u + sizeof(int64_t) + sizeof(double) ), // enum value + padding + int64 + double
 	"NumberValue expected to be smaller");
 
 static_assert(
@@ -45,9 +45,40 @@ static_assert( sizeof(StringValue) % ptr_size == 0u, "Value classes must have po
 static_assert( sizeof(NumberValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
 static_assert( sizeof(BoolValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
 
-static_assert( sizeof(Value::UniversalIterator) <= sizeof(void*) * 2u, "Universal iterator is too large." );
-static_assert( sizeof(Value::ArrayIterator) == sizeof(void*), "Specialized iterator must have pointer size." );
-static_assert( sizeof(Value::ObjectIterator) == sizeof(void*), "Specialized iterator must have pointer size." );
+
+static_assert(
+	sizeof(ObjectValueWithEntriesStorage<       0u>) == sizeof(ObjectValue) &&
+	sizeof(ObjectValueWithEntriesStorage<       1u>) == sizeof(ObjectValue) + sizeof(ObjectValue::ObjectEntry) &&
+	sizeof(ObjectValueWithEntriesStorage<10000000u>) == sizeof(ObjectValue) + sizeof(ObjectValue::ObjectEntry) * 10000000u,
+	"Object`s entries storage must store entries just behind object and have no gaps between object and entries." );
+
+static_assert(
+	sizeof(ArrayValueWithElementsStorage<       0u>) == sizeof(ArrayValue) &&
+	sizeof(ArrayValueWithElementsStorage<       1u>) == sizeof(ArrayValue) + sizeof(const ValueBase*) &&
+	sizeof(ArrayValueWithElementsStorage<10000000u>) == sizeof(ArrayValue) + sizeof(const ValueBase*) * 10000000u,
+	"Arrays`s elements storage must have no gaps between array value and elements." );
+
+// String storage placed just after string value.
+// But, string strorage can have size, bigger, than needed, because padding added for enum/int32 values.
+static_assert(
+	sizeof(StringValueWithStorage<                   0u>) == sizeof(StringValue) &&
+	sizeof(StringValueWithStorage<                   1u>) == sizeof(StringValue) + sizeof(int32_t) &&
+	sizeof(StringValueWithStorage< sizeof(int32_t)     >) == sizeof(StringValue) + sizeof(int32_t) &&
+	sizeof(StringValueWithStorage< sizeof(int32_t) + 1u>) == sizeof(StringValue) + sizeof(int32_t) * 2u,
+	"Bad string storage" );
+
+// String storage placed just after number value.
+// But, string strorage can have size, bigger, than needed, because padding added for int64/double values.
+static_assert(
+	sizeof(NumberValueWithStringStorage<                   0u>) == sizeof(NumberValue) &&
+	sizeof(NumberValueWithStringStorage<                   1u>) == sizeof(NumberValue) + sizeof(int64_t) &&
+	sizeof(NumberValueWithStringStorage< sizeof(int64_t)     >) == sizeof(NumberValue) + sizeof(int64_t) &&
+	sizeof(NumberValueWithStringStorage< sizeof(int64_t) + 1u>) == sizeof(NumberValue) + sizeof(int64_t) * 2u,
+	"Bad number string storage" );
+
+static_assert( sizeof(Value::UniversalIterator) <= ptr_size * 2u, "Universal iterator is too large." );
+static_assert( sizeof(Value::ArrayIterator) == ptr_size, "Specialized iterator must have pointer size." );
+static_assert( sizeof(Value::ObjectIterator) == ptr_size, "Specialized iterator must have pointer size." );
 
 }
 
@@ -82,9 +113,9 @@ static bool ValuesAreEqual_r( const ValueBase& l, const ValueBase& r ) noexcept
 
 			for( uint32_t i= 0u; i < l_object.object_count; i++ )
 			{
-				if( StringCompare( l_object.sub_objects[i].key, r_object.sub_objects[i].key ) != 0 )
+				if( StringCompare( l_object.GetEntries()[i].key, r_object.GetEntries()[i].key ) != 0 )
 					return false;
-				if( !ValuesAreEqual_r( *l_object.sub_objects[i].value, *r_object.sub_objects[i].value ) )
+				if( !ValuesAreEqual_r( *l_object.GetEntries()[i].value, *r_object.GetEntries()[i].value ) )
 					return false;
 			}
 			return true;
@@ -99,7 +130,7 @@ static bool ValuesAreEqual_r( const ValueBase& l, const ValueBase& r ) noexcept
 
 			for( uint32_t i= 0u; i < l_array.object_count; i++ )
 			{
-				if( !ValuesAreEqual_r( *l_array.objects[i], *r_array.objects[i] ) )
+				if( !ValuesAreEqual_r( *l_array.GetElements()[i], *r_array.GetElements()[i] ) )
 					return false;
 			}
 			return true;
@@ -108,8 +139,8 @@ static bool ValuesAreEqual_r( const ValueBase& l, const ValueBase& r ) noexcept
 	case ValueBase::Type::String:
 		return
 			StringCompare(
-				static_cast<const StringValue&>(l).str,
-				static_cast<const StringValue&>(r).str ) == 0;
+				static_cast<const StringValue&>(l).GetString(),
+				static_cast<const StringValue&>(r).GetString() ) == 0;
 
 	case ValueBase::Type::Number:
 		{
@@ -162,7 +193,7 @@ Value Value::operator[]( const size_t array_index ) const noexcept
 	{
 		const ArrayValue& array_value= static_cast<const ArrayValue&>(*value_);
 		if( array_index < array_value.object_count )
-			return Value( array_value.objects[ array_index ] );
+			return Value( array_value.GetElements()[ array_index ] );
 	}
 
 	return g_null_value;
@@ -190,8 +221,8 @@ const ValueBase* Value::SearchObject( const ObjectValue& object, const StringTyp
 
 	// Make binary search here.
 	// WARNING! Keys must be sorted. Python script or parser must sort keys.
-	const ObjectValue::ObjectEntry* start= object.sub_objects;
-	const ObjectValue::ObjectEntry* end= object.sub_objects + object.object_count;
+	const ObjectValue::ObjectEntry* start= object.GetEntries();
+	const ObjectValue::ObjectEntry* end= object.GetEntries() + object.object_count;
 	if( start == end )
 		return nullptr;
 
@@ -261,9 +292,9 @@ StringType Value::AsString() const noexcept
 	case ValueBase::Type::Array:
 		return "";
 	case ValueBase::Type::String:
-		return static_cast<const StringValue&>(*value_).str;
+		return static_cast<const StringValue&>(*value_).GetString();
 	case ValueBase::Type::Number:
-		return static_cast<const NumberValue&>(*value_).str;
+		return static_cast<const NumberValue&>(*value_).GetString();
 	case ValueBase::Type::Bool:
 		return static_cast<const BoolValue&>(*value_).value ? "true" : "false";
 	};
@@ -291,12 +322,12 @@ Value::UniversalIterator Value::begin() const noexcept
 	switch(value_->type)
 	{
 	case ValueBase::Type::Object:
-		ptr.object_entry= static_cast<const ObjectValue&>(*value_).sub_objects;
+		ptr.object_entry= static_cast<const ObjectValue&>(*value_).GetEntries();
 		type= ValueBase::Type::Object;
 		break;
 
 	case ValueBase::Type::Array:
-		ptr.array_value= static_cast<const ArrayValue&>(*value_).objects;
+		ptr.array_value= static_cast<const ArrayValue&>(*value_).GetElements();
 		type= ValueBase::Type::Array;
 		break;
 
@@ -321,7 +352,7 @@ Value::UniversalIterator Value::end() const noexcept
 	case ValueBase::Type::Object:
 		{
 			const ObjectValue& object_value= static_cast<const ObjectValue&>(*value_);
-			ptr.object_entry= object_value.sub_objects + object_value.object_count;
+			ptr.object_entry= object_value.GetEntries() + object_value.object_count;
 			type= ValueBase::Type::Object;
 		}
 		break;
@@ -329,7 +360,7 @@ Value::UniversalIterator Value::end() const noexcept
 	case ValueBase::Type::Array:
 		{
 			const ArrayValue& array_value= static_cast<const ArrayValue&>(*value_);
-			ptr.array_value= array_value.objects + array_value.object_count;
+			ptr.array_value= array_value.GetElements() + array_value.object_count;
 			type= ValueBase::Type::Array;
 		}
 		break;
@@ -347,7 +378,7 @@ Value::UniversalIterator Value::end() const noexcept
 Value::ArrayIterator Value::array_begin() const noexcept
 {
 	if( value_->type == ValueBase::Type::Array )
-		return ArrayIterator( static_cast<const ArrayValue&>(*value_).objects );
+		return ArrayIterator( static_cast<const ArrayValue&>(*value_).GetElements() );
 	else
 		return ArrayIterator( nullptr );
 }
@@ -357,7 +388,7 @@ Value::ArrayIterator Value::array_end() const noexcept
 	if( value_->type == ValueBase::Type::Array )
 	{
 		const ArrayValue& array_value= static_cast<const ArrayValue&>(*value_);
-		return ArrayIterator( array_value.objects + array_value.object_count );
+		return ArrayIterator( array_value.GetElements() + array_value.object_count );
 	}
 	else
 		return ArrayIterator( nullptr );
@@ -366,7 +397,7 @@ Value::ArrayIterator Value::array_end() const noexcept
 Value::ObjectIterator Value::object_begin() const noexcept
 {
 	if( value_->type == ValueBase::Type::Object )
-		return ObjectIterator( static_cast<const ObjectValue&>(*value_).sub_objects );
+		return ObjectIterator( static_cast<const ObjectValue&>(*value_).GetEntries() );
 	else
 		return ObjectIterator( nullptr );
 }
@@ -376,7 +407,7 @@ Value::ObjectIterator Value::object_end() const noexcept
 	if( value_->type == ValueBase::Type::Object )
 	{
 		const ObjectValue& object_value= static_cast<const ObjectValue&>(*value_);
-		return ObjectIterator( object_value.sub_objects + object_value.object_count );
+		return ObjectIterator( object_value.GetEntries() + object_value.object_count );
 	}
 	else
 		return ObjectIterator( nullptr );

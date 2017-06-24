@@ -55,9 +55,9 @@ void Serializer::Serialize_r( Stream& stream, const ValueBase& value )
 
 		for( size_t i= 0u; i < object.object_count; i++ )
 		{
-			SerializeString( stream, object.sub_objects[i].key );
+			SerializeString( stream, object.GetEntries()[i].key );
 			stream << ":";
-			Serialize_r( stream, *object.sub_objects[i].value );
+			Serialize_r( stream, *object.GetEntries()[i].value );
 			if( i < object.object_count - 1u )
 				stream << ",";
 		}
@@ -74,7 +74,7 @@ void Serializer::Serialize_r( Stream& stream, const ValueBase& value )
 
 			for( size_t i= 0u; i < array.object_count; i++ )
 			{
-				Serialize_r( stream, *array.objects[i] );
+				Serialize_r( stream, *array.GetElements()[i] );
 				if( i < array.object_count - 1u )
 					stream << ",";
 			}
@@ -84,11 +84,11 @@ void Serializer::Serialize_r( Stream& stream, const ValueBase& value )
 		break;
 
 	case ValueBase::Type::String:
-		SerializeString( stream, static_cast<const StringValue&>(value).str );
+		SerializeString( stream, static_cast<const StringValue&>(value).GetString() );
 		break;
 
 	case ValueBase::Type::Number:
-		stream << static_cast<const NumberValue&>(value).str;
+		stream << static_cast<const NumberValue&>(value).GetString();
 		break;
 
 	case ValueBase::Type::Bool:

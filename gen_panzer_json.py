@@ -25,10 +25,6 @@ def NextCounter():
 	return str(result)
 
 
-def Stringify( something ):
-	return "\"" + str(something) + "\""
-
-
 def PrepareIntValue( int_value ):
 
 	int_value = int(int_value)
@@ -79,7 +75,6 @@ def MakeQuotedEscapedString( s ):
 	return result
 
 # Global flags for values pooling.
-# TODO - try to add pooling for all values.
 null_value_emitted= False
 false_bool_value_emitted= False
 true_bool_value_emitted = False
@@ -87,10 +82,15 @@ number_values_pool= dict()
 string_values_pool= dict()
 object_values_pool= dict()
 array_values_pool= dict()
+string_values_data_pool= dict()
+
+# Some params
+save_string_for_numbers= False
 
 # Returns pair of strings.
 # First string - preinitializers, second string - name.
 def WritePanzerJsonValue( json_struct ):
+	global string_values_data_pool
 
 	if type(json_struct) is dict:
 		keys_sorted= sorted( json_struct )
@@ -100,7 +100,15 @@ def WritePanzerJsonValue( json_struct ):
 		for object_key in keys_sorted :
 			member_value= WritePanzerJsonValue( json_struct[object_key] )
 			result_preinitializer= result_preinitializer + member_value[0]
-			result_object_storage= result_object_storage + "\t{ " + MakeQuotedEscapedString(object_key) + ", &" + member_value[1] + " },\n"
+
+			# Try reuse storage of existent string value as key.
+			pool_key_data= string_values_data_pool.get( object_key, None )
+			if pool_key_data is not None:
+				key_str= pool_key_data
+			else:
+				key_str= MakeQuotedEscapedString(object_key)
+
+			result_object_storage= result_object_storage + "\t\t{ " + key_str + ", &" + member_value[1] + " },\n"
 
 		# We use pooling for all values. So, if storage is equal to previous objects storage, then, objects are equal.
 		global object_values_pool
@@ -109,14 +117,15 @@ def WritePanzerJsonValue( json_struct ):
 			return [ "", pool_object ]
 
 		obj_storage_name= "object_storage" + NextCounter()
-		obj_value_name= "object_value" + NextCounter()
+		obj_value_name= obj_storage_name + ".value"
 
 		object_values_pool[ result_object_storage ]= obj_value_name
 
-		result_object_storage= "constexpr const ObjectValue::ObjectEntry " + obj_storage_name + "[]\n{\n" + result_object_storage + "};\n"
-		result_object= "constexpr const ObjectValue " + obj_value_name + "( " + obj_storage_name + ", " + str(len(json_struct)) + " );\n\n"
+		object_count= str(len(json_struct)) + "u"
+		result_object_storage= "constexpr const ObjectValueWithEntriesStorage<" + object_count + "> " + obj_storage_name + \
+		"\n{\n" + "\tObjectValue(" + object_count + "),\n" + "\t{\n" + result_object_storage + "\t}\n" + "};\n\n"
 
-		return [ result_preinitializer + result_object_storage + result_object, obj_value_name ]
+		return [ result_preinitializer + result_object_storage, obj_value_name ]
 
 	if type(json_struct) is list:
 		result_array_storage= ""
@@ -125,7 +134,7 @@ def WritePanzerJsonValue( json_struct ):
 		for array_member in json_struct :
 			member_value= WritePanzerJsonValue( array_member )
 			result_preinitializer= result_preinitializer + member_value[0]
-			result_array_storage= result_array_storage  + "\t&" + member_value[1] + ",\n"
+			result_array_storage= result_array_storage  + "\t\t&" + member_value[1] + ",\n"
 
 		# We use pooling for all values. So, if storage is equal to previous objects storage, then, objects are equal.
 		global array_values_pool
@@ -134,23 +143,37 @@ def WritePanzerJsonValue( json_struct ):
 			return [ "", pool_array ]
 
 		arr_storage_name= "array_storage" + NextCounter()
-		arr_value_name= "array_value" + NextCounter()
+		arr_value_name= arr_storage_name + ".value"
 
 		array_values_pool[ result_array_storage ]= arr_value_name
 
-		result_array_storage= "constexpr const ValueBase* " + arr_storage_name + "[]\n{\n" + result_array_storage + "};\n"
-		result_array= "constexpr const ArrayValue " + arr_value_name + "( " + arr_storage_name + ", " + str(len(json_struct)) + " );\n\n"
+		object_count= str(len(json_struct)) + "u"
+		result_array_storage= "constexpr const ArrayValueWithElementsStorage<" + object_count + "> " + arr_storage_name + \
+		"\n{\n" + "\tArrayValue(" + object_count + "),\n" + "\t{\n" + result_array_storage + "\t}\n" + "};\n\n"
 
-		return [ result_preinitializer + result_array_storage + result_array, arr_value_name ]
+		return [ result_preinitializer + result_array_storage, arr_value_name ]
 
 	if type(json_struct) is str:
 		# Use strings pooling - emit same value once.
 		global string_values_pool
 		pool_value = string_values_pool.get( json_struct, None )
+
 		if pool_value is None:
-			var_name= "string_value" + NextCounter()
+
+			storage_name= "string_storage" + NextCounter()
+			var_name= storage_name + ".value"
 			string_values_pool[ json_struct ]= var_name
-			return [ "constexpr StringValue " + var_name + "(" + MakeQuotedEscapedString(json_struct) + ");\n\n", var_name ]
+			quoted_string= MakeQuotedEscapedString(json_struct)
+			str_length= str(len(json_struct.encode("utf-8")) + 1) + "u"
+			result_string_storage= "constexpr StringValueWithStorage<" + str_length + "> " + storage_name + \
+			"\n{\n" + "\tStringValue(),\n" + "\t" + quoted_string + "\n};\n\n"
+
+			# Also, save pointer to storage of string value.
+			# We can use this pointer, also, for objects keys.
+			string_values_data_pool[ json_struct ]= storage_name + ".string"
+
+			return [ result_string_storage, var_name ]
+
 		else:
 			return [ "", pool_value ]
 
@@ -161,9 +184,23 @@ def WritePanzerJsonValue( json_struct ):
 		pool_key = str(float(json_struct)) + "___" + str(int(json_struct))
 		pool_value = number_values_pool.get( pool_key, None )
 		if pool_value is None:
-			var_name= "number_value" + NextCounter()
+
+			storage_name= "number_storage" + NextCounter()
+			var_name= storage_name + ".value"
 			number_values_pool[ pool_key ]= var_name
-			return [ "constexpr NumberValue " + var_name + "(" + Stringify(json_struct) + ", " + PrepareIntValue(json_struct) + ", " + str(float(json_struct)) + ");\n\n", var_name ]
+
+			global save_string_for_numbers
+			if save_string_for_numbers:
+				num_str= str(json_struct)
+				num_str_quoted= "\"" + num_str + "\""
+				result_number_storage= "constexpr NumberValueWithStringStorage<" + str(len(num_str) + 1) + "u> " + storage_name + \
+				"\n{\n" + "\tNumberValue( " + PrepareIntValue(json_struct) + ", " + str(float(json_struct)) + ", true ),\n" + "\t" + num_str_quoted + "\n};\n\n"
+			else:
+				result_number_storage= "constexpr NumberValueWithStringStorage<0u> " + storage_name + \
+				"\n{\n" + "\tNumberValue( " + PrepareIntValue(json_struct) + ", " + str(float(json_struct)) + ", false )" + "\n};\n\n"
+
+			return [ result_number_storage, var_name ]
+
 		else:
 			return [ "", pool_value ]
 
@@ -224,10 +261,17 @@ def main():
 	parser.add_argument( "-i", help= "input json file", type=str )
 	parser.add_argument( "-o", help= "output cpp/hpp file name base", type=str )
 	parser.add_argument( "-n", help= "name of result variable", type=str )
+	parser.add_argument( "-s", help= "save or not strings for numbers", action="store_true" )
 
 	args= parser.parse_args()
 
+	save_string_for_numbers= args.s
+
 	print( "Convert \"" + args.i + "\" to \"" + args.o + "\"" )
+	if save_string_for_numbers:
+		print( "Save numbers strings" )
+	else:
+		print( "Do not save numbers strings" )
 
 	cpp_file= args.o + ".cpp"
 	hpp_file= args.o + ".hpp"
