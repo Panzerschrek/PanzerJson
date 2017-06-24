@@ -18,11 +18,11 @@ static_assert(
 	"NullValue expected to be smaller");
 
 static_assert(
-	sizeof(ObjectValue) <= ( is64bit ? ( ptr_size * 2u ) : ( sizeof(int32_t) * 2u + ptr_size ) ), // enum value + uint32 + ptr
+	sizeof(ObjectValue) == ( is64bit ? ( ptr_size ) : ( sizeof(int32_t) * 2u ) ), // enum value + uint32
 	"ObjectValue expected to be smaller");
 
 static_assert(
-	sizeof(ArrayValue ) <= ( is64bit ? ( ptr_size * 2u ) : ( sizeof(int32_t) * 2u + ptr_size ) ), // enum value + uint32 + ptr
+	sizeof(ArrayValue ) == ( is64bit ? ( ptr_size ) : ( sizeof(int32_t) * 2u ) ), // enum value + uint32
 	"Array expected to be smaller");
 
 static_assert(
@@ -45,17 +45,22 @@ static_assert( sizeof(StringValue) % ptr_size == 0u, "Value classes must have po
 static_assert( sizeof(NumberValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
 static_assert( sizeof(BoolValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
 
-// Object`s entries storage must store entries just behind object and have not gaps between object and entries.
-static_assert( sizeof(ObjectValueWithEntriesStorage<0u>) == sizeof(ObjectValue), "Empty value storage must be equal to object size" );
-static_assert( sizeof(ObjectValueWithEntriesStorage<1u>) == sizeof(ObjectValue) + sizeof(ObjectValue::ObjectEntry), "" );
 
-// Arrays`s elements storage must have no gaps between array value and elements.
-static_assert( sizeof(ArrayValueWithElementsStorage<0u>) == sizeof(ArrayValue), "Empty array storage must be equal to array size" );
-static_assert( sizeof(ArrayValueWithElementsStorage<1u>) == sizeof(ArrayValue) + sizeof(const ValueBase*), "" );
+static_assert(
+	sizeof(ObjectValueWithEntriesStorage<       0u>) == sizeof(ObjectValue) &&
+	sizeof(ObjectValueWithEntriesStorage<       1u>) == sizeof(ObjectValue) + sizeof(ObjectValue::ObjectEntry) &&
+	sizeof(ObjectValueWithEntriesStorage<10000000u>) == sizeof(ObjectValue) + sizeof(ObjectValue::ObjectEntry) * 10000000u,
+	"Object`s entries storage must store entries just behind object and have no gaps between object and entries." );
 
-static_assert( sizeof(Value::UniversalIterator) <= sizeof(void*) * 2u, "Universal iterator is too large." );
-static_assert( sizeof(Value::ArrayIterator) == sizeof(void*), "Specialized iterator must have pointer size." );
-static_assert( sizeof(Value::ObjectIterator) == sizeof(void*), "Specialized iterator must have pointer size." );
+static_assert(
+	sizeof(ArrayValueWithElementsStorage<       0u>) == sizeof(ArrayValue) &&
+	sizeof(ArrayValueWithElementsStorage<       1u>) == sizeof(ArrayValue) + sizeof(const ValueBase*) &&
+	sizeof(ArrayValueWithElementsStorage<10000000u>) == sizeof(ArrayValue) + sizeof(const ValueBase*) * 10000000u,
+	"Arrays`s elements storage must have no gaps between array value and elements." );
+
+static_assert( sizeof(Value::UniversalIterator) <= ptr_size * 2u, "Universal iterator is too large." );
+static_assert( sizeof(Value::ArrayIterator) == ptr_size, "Specialized iterator must have pointer size." );
+static_assert( sizeof(Value::ObjectIterator) == ptr_size, "Specialized iterator must have pointer size." );
 
 }
 
