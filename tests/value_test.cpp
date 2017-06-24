@@ -63,14 +63,16 @@ static void SimpleObjectValueTest()
 	static constexpr BoolValue bool_value( true );
 	static constexpr StringValue string_value( "a" );
 	static constexpr NumberValue number_value( "1458.4", 1458, 1458.4 );
-	static constexpr ObjectValue::ObjectEntry objects[3u]
+	static constexpr ObjectValueWithEntriesStorage<3u> object_torage
 	{
-		{ "1foo", &bool_value },
-		{ u8"2Zwölf", &string_value },
-		{ u8"3\n1", &number_value },
+		ObjectValue(3u),
+		{
+			{ "1foo", &bool_value },
+			{ u8"2Zwölf", &string_value },
+			{ u8"3\n1", &number_value },
+		}
 	};
-	static constexpr ObjectValue object_value( objects, 3u );
-	Value value(&object_value);
+	Value value(&object_torage.value);
 
 	test_assert( value.GetType() == ValueBase::Type::Object );
 	test_assert( value.ElementCount() == 3u );
@@ -129,18 +131,20 @@ static void ObjectValueSearchTest()
 		&number_value1,
 	};
 	static constexpr ArrayValue array_value( array_objects, 3u );
-	static constexpr ObjectValue::ObjectEntry objects[7u]
+	static constexpr ObjectValueWithEntriesStorage<7u> object_storage
 	{
-		{ "apple", &bool_value0 },
-		{ "beer", &string_value0 },
-		{ "candy", &number_value0 },
-		{ "death", &bool_value1 },
-		{ "element", &string_value1 },
-		{ "fruit", &number_value1 },
-		{ "g not gay", &array_value },
+		ObjectValue(7u),
+		{
+			{ "apple", &bool_value0 },
+			{ "beer", &string_value0 },
+			{ "candy", &number_value0 },
+			{ "death", &bool_value1 },
+			{ "element", &string_value1 },
+			{ "fruit", &number_value1 },
+			{ "g not gay", &array_value },
+		}
 	};
-	static constexpr ObjectValue object_value( objects, 7u );
-	Value value(&object_value);
+	Value value( &object_storage.value );
 
 	test_assert( value["apple"].IsBool() && value["apple"].AsInt() == 1 );
 	test_assert( value["beer"].IsString() && std::strcmp( value["beer"].AsString(), "a" ) == 0 );
@@ -175,18 +179,20 @@ static void UniversalIteratorTest0()
 		&number_value1,
 	};
 	static constexpr ArrayValue array_value( array_objects, 3u );
-	static constexpr ObjectValue::ObjectEntry objects[7u]
+	static constexpr ObjectValueWithEntriesStorage<7u> object_storage
 	{
-		{ "apple", &bool_value0 },
-		{ "beer", &string_value0 },
-		{ "candy", &number_value0 },
-		{ "death", &bool_value1 },
-		{ "element", &string_value1 },
-		{ "fruit", &number_value1 },
-		{ "g not gay", &array_value },
+		ObjectValue(7u),
+		{
+			{ "apple", &bool_value0 },
+			{ "beer", &string_value0 },
+			{ "candy", &number_value0 },
+			{ "death", &bool_value1 },
+			{ "element", &string_value1 },
+			{ "fruit", &number_value1 },
+			{ "g not gay", &array_value },
+		}
 	};
-	static constexpr ObjectValue object_value( objects, 7u );
-	Value value(&object_value);
+	Value value( &object_storage.value );
 
 	const auto it_begin= value.begin();
 	const auto it_end= value.end();
@@ -209,7 +215,7 @@ static void UniversalIteratorTest0()
 		test_assert(iteration_count == value.ElementCount());
 		for( unsigned int i= 0u; i < iteration_count; i++ )
 		{
-			Value original_value(objects[i].value);
+			Value original_value(object_storage.entries[i].value);
 			test_assert(iterated_values[i].GetType() == original_value.GetType());
 			test_assert(iterated_values[i].AsInt64() == original_value.AsInt64());
 			test_assert(iterated_values[i].AsDouble() == original_value.AsDouble());
@@ -259,7 +265,7 @@ static void UniversalIteratorTest1()
 	static constexpr NumberValue number_value( "1458.4", 1458, 1458.4 );
 	static constexpr StringValue string_value( "a" );
 	static constexpr BoolValue bool_value( true );
-	static constexpr ObjectValue object_value( nullptr, 0u );
+	static constexpr ObjectValue object_value( 0u );
 	static constexpr const ValueBase* objects[4u]
 	{
 		&number_value,
@@ -337,7 +343,7 @@ static void UniversalIteratorTest1()
 static void UniversalIteratorTest2()
 {
 	// Iterate over empty object.
-	ObjectValue empty_object_value(nullptr, 0u);
+	ObjectValue empty_object_value(0u);
 	Value value( &empty_object_value );
 
 	const auto it_begin= value.begin();
@@ -412,7 +418,7 @@ static void ArrayIteratorTest0()
 	static constexpr NumberValue number_value( "1458.4", 1458, 1458.4 );
 	static constexpr StringValue string_value( "a" );
 	static constexpr BoolValue bool_value( true );
-	static constexpr ObjectValue object_value( nullptr, 0u );
+	static constexpr ObjectValue object_value( 0u );
 	static constexpr const ValueBase* objects[4u]
 	{
 		&number_value,
@@ -538,14 +544,15 @@ static void ArrayIteratorTest2()
 	static constexpr BoolValue bool_value( false );
 	test_iterate( Value( &bool_value ) );
 
-	static constexpr ObjectValue::ObjectEntry object_entries[2]
+	static constexpr ObjectValueWithEntriesStorage<2u> object_storage
 	{
-		{ "first", &nuber_value },
-		{ "seconds", &string_value },
+		ObjectValue(2u),
+		{
+			{ "first", &nuber_value },
+			{ "seconds", &string_value },
+		}
 	};
-
-	static constexpr ObjectValue object_value( object_entries, 2u );
-	test_iterate( Value( &object_value ) );
+	test_iterate( Value( &object_storage.value ) );
 }
 
 static void ObjectIteratorTest0()
@@ -565,18 +572,20 @@ static void ObjectIteratorTest0()
 		&number_value1,
 	};
 	static constexpr ArrayValue array_value( array_objects, 3u );
-	static constexpr ObjectValue::ObjectEntry objects[7u]
+	static constexpr ObjectValueWithEntriesStorage<7u> object_storage
 	{
-		{ "apple", &bool_value0 },
-		{ "beer", &string_value0 },
-		{ "candy", &number_value0 },
-		{ "death", &bool_value1 },
-		{ "element", &string_value1 },
-		{ "fruit", &number_value1 },
-		{ "g not gay", &array_value },
+		ObjectValue(7u),
+		{
+			{ "apple", &bool_value0 },
+			{ "beer", &string_value0 },
+			{ "candy", &number_value0 },
+			{ "death", &bool_value1 },
+			{ "element", &string_value1 },
+			{ "fruit", &number_value1 },
+			{ "g not gay", &array_value },
+		}
 	};
-	static constexpr ObjectValue object_value( objects, 7u );
-	Value value(&object_value);
+	Value value( &object_storage.value );
 
 	const auto it_begin= value.object_begin();
 	const auto it_end= value.object_end();
@@ -592,9 +601,9 @@ static void ObjectIteratorTest0()
 		unsigned int iteration_count= 0u;
 		for( const Value::ObjectIterator::value_type subobject_value : value.object_elements() )
 		{
-			Value original_value(objects[iteration_count].value);
+			Value original_value(object_storage.entries[iteration_count].value);
 
-			test_assert( std::strcmp( subobject_value.first, objects[iteration_count].key ) == 0 );
+			test_assert( std::strcmp( subobject_value.first, object_storage.entries[iteration_count].key ) == 0 );
 			test_assert(subobject_value.second.GetType() == original_value.GetType());
 			test_assert(subobject_value.second.AsInt64() == original_value.AsInt64());
 			test_assert(subobject_value.second.AsDouble() == original_value.AsDouble());
@@ -644,7 +653,7 @@ static void ObjectIteratorTest0()
 static void ObjectIteratorTest1()
 {
 	// Iterate over empty object.
-	ObjectValue empty_object_value(nullptr, 0u);
+	ObjectValue empty_object_value(0u);
 	Value value( &empty_object_value );
 
 	const auto it_begin= value.object_begin();
@@ -915,46 +924,40 @@ static void ValueEqualityTest6()
 	// Objects.
 
 	static constexpr StringValue string0( u8"Quick brown fox jumps over the lazy dog" );
-	static constexpr StringValue string1( u8"A" );
 	static constexpr StringValue string2( u8"" );
-	static constexpr StringValue string3( u8"" );
 	static constexpr NumberValue number0( "3.14", 3, 3.14 );
 	static constexpr NumberValue number1( "2.718281828", 2, 2.718281828);
 	static constexpr NumberValue number2( "2.718281828", 2, 2.718281828);
 	static constexpr NullValue null_value;
 
-	static constexpr ObjectValue object0( nullptr, 0u );
-	static constexpr ObjectValue object1( nullptr, 0u );
+	static constexpr ObjectValue object0( 0u );
+	static constexpr ObjectValue object1( 0u );
 
-	static constexpr ObjectValue::ObjectEntry object2_entries[]
+	static constexpr ObjectValueWithEntriesStorage<3u> object2
 	{
-		{ "A", &string0 }, { "BB", &number1 }, { "Ctror", &null_value },
+		ObjectValue(3u),
+		{ { "A", &string0 }, { "BB", &number1 }, { "Ctror", &null_value }, }
 	};
-	static constexpr ObjectValue object2( object2_entries, 3u );
-
-	static constexpr ObjectValue::ObjectEntry object3_entries[]
+	static constexpr ObjectValueWithEntriesStorage<3u> object3
 	{
-		{ "A", &string0 }, { "BB", &number2 }, { "Ctror", &null_value },
+		ObjectValue(3u),
+		{ { "A", &string0 }, { "BB", &number2 }, { "Ctror", &null_value }, }
 	};
-	static constexpr ObjectValue object3( object3_entries, 3u );
-
-	static constexpr ObjectValue::ObjectEntry object4_entries[]
+	static constexpr ObjectValueWithEntriesStorage<4u> object4
 	{
-		{ "A", &string0 }, { "BB", &number2 }, { "Ctror", &null_value }, { "Delta", &string2 },
+		ObjectValue(4u),
+		{ { "A", &string0 }, { "BB", &number2 }, { "Ctror", &null_value }, { "Delta", &string2 }, }
 	};
-	static constexpr ObjectValue object4( object4_entries, 4u );
-
-	static constexpr ObjectValue::ObjectEntry object5_entries[]
+	static constexpr ObjectValueWithEntriesStorage<4u> object5
 	{
-		{ "A", &string0 }, { "BB", &number2 }, { "Ctror", &null_value }, { "Delta2", &string2 },
+		ObjectValue(4u),
+		{ { "A", &string0 }, { "BB", &number2 }, { "Ctror", &null_value }, { "Delta2", &string2 }, }
 	};
-	static constexpr ObjectValue object5( object5_entries, 4u );
-
-	static constexpr ObjectValue::ObjectEntry object6_entries[]
+	static constexpr ObjectValueWithEntriesStorage<4u> object6
 	{
-		{ "A", &string0 }, { "BB", &number0 }, { "Ctror", &null_value }, { "Delta", &string2 },
+		ObjectValue(4u),
+		{ { "A", &string0 }, { "BB", &number0 }, { "Ctror", &null_value }, { "Delta", &string2 }, }
 	};
-	static constexpr ObjectValue object6( object6_entries, 4u );
 
 	// Empty object equal to itself
 	test_assert( Value(&object0) == Value(&object0) );
@@ -965,28 +968,28 @@ static void ValueEqualityTest6()
 	test_assert( !( Value(&object0) != Value(&object1) ) );
 
 	// Empty object not equal to nonempty object
-	test_assert( Value(&object0) != Value(&object2) );
-	test_assert( !( Value(&object0) == Value(&object2) ) );
+	test_assert( Value(&object0) != Value(&object2.value) );
+	test_assert( !( Value(&object0) == Value(&object2.value) ) );
 
 	// Nonempty object equal to itself
-	test_assert( Value(&object2) == Value(&object2) );
-	test_assert( !( Value(&object2) != Value(&object2) ) );
+	test_assert( Value(&object2.value) == Value(&object2.value) );
+	test_assert( !( Value(&object2.value) != Value(&object2.value) ) );
 
 	// Nonempty object equal to other nonempty object with same content
-	test_assert( Value(&object2) == Value(&object3) );
-	test_assert( !( Value(&object2) != Value(&object3) ) );
+	test_assert( Value(&object2.value) == Value(&object3.value) );
+	test_assert( !( Value(&object2.value) != Value(&object3.value) ) );
 
 	// Nonempty object not equal to object with different size
-	test_assert( Value(&object2) != Value(&object4) );
-	test_assert( !( Value(&object2) == Value(&object4) ) );
+	test_assert( Value(&object2.value) != Value(&object4.value) );
+	test_assert( !( Value(&object2.value) == Value(&object4.value) ) );
 
 	// Nonempty object not equal to object with same size but different keys
-	test_assert( Value(&object4) != Value(&object5) );
-	test_assert( !( Value(&object4) == Value(&object5) ) );
+	test_assert( Value(&object4.value) != Value(&object5.value) );
+	test_assert( !( Value(&object4.value) == Value(&object5.value) ) );
 
 	// Nonempty object not equal to object with same keys but different values
-	test_assert( Value(&object4) != Value(&object6) );
-	test_assert( !( Value(&object4) == Value(&object6) ) );
+	test_assert( Value(&object4.value) != Value(&object6.value) );
+	test_assert( !( Value(&object4.value) == Value(&object6.value) ) );
 }
 
 void RunValueTests()

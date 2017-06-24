@@ -45,6 +45,10 @@ static_assert( sizeof(StringValue) % ptr_size == 0u, "Value classes must have po
 static_assert( sizeof(NumberValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
 static_assert( sizeof(BoolValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
 
+// Object`s entries storage must store entries just behind object and have not gaps between object and entries.
+static_assert( sizeof(ObjectValueWithEntriesStorage<0u>) == sizeof(ObjectValue), "Empty value storage must be equal to object size" );
+static_assert( sizeof(ObjectValueWithEntriesStorage<1u>) == sizeof(ObjectValue) + sizeof(ObjectValue::ObjectEntry), "" );
+
 static_assert( sizeof(Value::UniversalIterator) <= sizeof(void*) * 2u, "Universal iterator is too large." );
 static_assert( sizeof(Value::ArrayIterator) == sizeof(void*), "Specialized iterator must have pointer size." );
 static_assert( sizeof(Value::ObjectIterator) == sizeof(void*), "Specialized iterator must have pointer size." );
@@ -82,9 +86,9 @@ static bool ValuesAreEqual_r( const ValueBase& l, const ValueBase& r ) noexcept
 
 			for( uint32_t i= 0u; i < l_object.object_count; i++ )
 			{
-				if( StringCompare( l_object.sub_objects[i].key, r_object.sub_objects[i].key ) != 0 )
+				if( StringCompare( l_object.GetEntries()[i].key, r_object.GetEntries()[i].key ) != 0 )
 					return false;
-				if( !ValuesAreEqual_r( *l_object.sub_objects[i].value, *r_object.sub_objects[i].value ) )
+				if( !ValuesAreEqual_r( *l_object.GetEntries()[i].value, *r_object.GetEntries()[i].value ) )
 					return false;
 			}
 			return true;
@@ -190,8 +194,8 @@ const ValueBase* Value::SearchObject( const ObjectValue& object, const StringTyp
 
 	// Make binary search here.
 	// WARNING! Keys must be sorted. Python script or parser must sort keys.
-	const ObjectValue::ObjectEntry* start= object.sub_objects;
-	const ObjectValue::ObjectEntry* end= object.sub_objects + object.object_count;
+	const ObjectValue::ObjectEntry* start= object.GetEntries();
+	const ObjectValue::ObjectEntry* end= object.GetEntries() + object.object_count;
 	if( start == end )
 		return nullptr;
 
@@ -291,7 +295,7 @@ Value::UniversalIterator Value::begin() const noexcept
 	switch(value_->type)
 	{
 	case ValueBase::Type::Object:
-		ptr.object_entry= static_cast<const ObjectValue&>(*value_).sub_objects;
+		ptr.object_entry= static_cast<const ObjectValue&>(*value_).GetEntries();
 		type= ValueBase::Type::Object;
 		break;
 
@@ -321,7 +325,7 @@ Value::UniversalIterator Value::end() const noexcept
 	case ValueBase::Type::Object:
 		{
 			const ObjectValue& object_value= static_cast<const ObjectValue&>(*value_);
-			ptr.object_entry= object_value.sub_objects + object_value.object_count;
+			ptr.object_entry= object_value.GetEntries() + object_value.object_count;
 			type= ValueBase::Type::Object;
 		}
 		break;
@@ -366,7 +370,7 @@ Value::ArrayIterator Value::array_end() const noexcept
 Value::ObjectIterator Value::object_begin() const noexcept
 {
 	if( value_->type == ValueBase::Type::Object )
-		return ObjectIterator( static_cast<const ObjectValue&>(*value_).sub_objects );
+		return ObjectIterator( static_cast<const ObjectValue&>(*value_).GetEntries() );
 	else
 		return ObjectIterator( nullptr );
 }
@@ -376,7 +380,7 @@ Value::ObjectIterator Value::object_end() const noexcept
 	if( value_->type == ValueBase::Type::Object )
 	{
 		const ObjectValue& object_value= static_cast<const ObjectValue&>(*value_);
-		return ObjectIterator( object_value.sub_objects + object_value.object_count );
+		return ObjectIterator( object_value.GetEntries() + object_value.object_count );
 	}
 	else
 		return ObjectIterator( nullptr );

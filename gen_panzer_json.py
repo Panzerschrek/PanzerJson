@@ -100,7 +100,7 @@ def WritePanzerJsonValue( json_struct ):
 		for object_key in keys_sorted :
 			member_value= WritePanzerJsonValue( json_struct[object_key] )
 			result_preinitializer= result_preinitializer + member_value[0]
-			result_object_storage= result_object_storage + "\t{ " + MakeQuotedEscapedString(object_key) + ", &" + member_value[1] + " },\n"
+			result_object_storage= result_object_storage + "\t\t{ " + MakeQuotedEscapedString(object_key) + ", &" + member_value[1] + " },\n"
 
 		# We use pooling for all values. So, if storage is equal to previous objects storage, then, objects are equal.
 		global object_values_pool
@@ -109,14 +109,15 @@ def WritePanzerJsonValue( json_struct ):
 			return [ "", pool_object ]
 
 		obj_storage_name= "object_storage" + NextCounter()
-		obj_value_name= "object_value" + NextCounter()
+		obj_value_name= obj_storage_name + ".value"
 
 		object_values_pool[ result_object_storage ]= obj_value_name
 
-		result_object_storage= "constexpr const ObjectValue::ObjectEntry " + obj_storage_name + "[]\n{\n" + result_object_storage + "};\n"
-		result_object= "constexpr const ObjectValue " + obj_value_name + "( " + obj_storage_name + ", " + str(len(json_struct)) + " );\n\n"
+		object_count= str(len(json_struct)) + "u"
+		result_object_storage= "constexpr const ObjectValueWithEntriesStorage<" + object_count + "> " + obj_storage_name + \
+		"\n{\n" + "\tObjectValue(" + object_count + "),\n" + "\t{\n" + result_object_storage + "\t}\n" + "};\n"
 
-		return [ result_preinitializer + result_object_storage + result_object, obj_value_name ]
+		return [ result_preinitializer + result_object_storage, obj_value_name ]
 
 	if type(json_struct) is list:
 		result_array_storage= ""

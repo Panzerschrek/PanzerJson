@@ -64,15 +64,26 @@ struct ObjectValue final : public ValueBase
 		const ValueBase* value;
 	};
 
-	// WARNING! SubObjects must be sorted by key.
 	uint32_t object_count;
-	const ObjectEntry* sub_objects;
 
-	constexpr ObjectValue( const ObjectEntry* const in_sub_objects, const uint32_t in_object_count ) noexcept
+	explicit constexpr ObjectValue( const uint32_t in_object_count ) noexcept
 		: ValueBase(Type::Object)
 		, object_count(in_object_count)
-		, sub_objects(in_sub_objects)
 	{}
+
+	const ObjectEntry* GetEntries() const noexcept
+	{
+		// Objects stores their members just after it.
+		return reinterpret_cast<const ObjectEntry*>(this + 1u);
+	}
+};
+
+template<size_t N>
+struct ObjectValueWithEntriesStorage final
+{
+	ObjectValue value;
+	// WARNING! Entries must be sorted by key!
+	ObjectValue::ObjectEntry entries[N];
 };
 
 struct ArrayValue final : public ValueBase

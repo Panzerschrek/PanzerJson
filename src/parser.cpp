@@ -118,24 +118,24 @@ const ValueBase* Parser::Parse_r()
 		}
 
 		const size_t entries_count= object_entries_stack_.size() - object_entries_stack_pos;
+		const size_t offset= result_.storage.size();
+		result_.storage.resize(
+			result_.storage.size() +
+			sizeof(ObjectValue) +
+			sizeof(ObjectValue::ObjectEntry) * entries_count );
 
-		const size_t entries_offset= result_.storage.size();
-		result_.storage.resize( result_.storage.size() + sizeof(ObjectValue::ObjectEntry) * entries_count );
-		ObjectValue::ObjectEntry* const result_entries=
-			reinterpret_cast<ObjectValue::ObjectEntry*>( result_.storage.data() + entries_offset );
-		std::memcpy( result_entries, object_entries_stack_.data() + object_entries_stack_pos, sizeof(ObjectValue::ObjectEntry) * entries_count );
-
-		const size_t object_offset= result_.storage.size();
-		result_.storage.resize( result_.storage.size() + sizeof(ObjectValue) );
-		ObjectValue* const object_value= reinterpret_cast<ObjectValue*>( result_.storage.data() + object_offset );
-
+		ObjectValue* const object_value= reinterpret_cast<ObjectValue*>( result_.storage.data() + offset );
 		object_value->type= ValueBase::Type::Object;
-		object_value->sub_objects= reinterpret_cast<ObjectValue::ObjectEntry*>( static_cast<char*>(nullptr) + entries_offset );
 		object_value->object_count= static_cast<uint32_t>(entries_count);
+
+		std::memcpy(
+			result_.storage.data() + offset + sizeof(ObjectValue),
+			object_entries_stack_.data() + object_entries_stack_pos,
+			sizeof(ObjectValue::ObjectEntry) * entries_count );
 
 		object_entries_stack_.resize(object_entries_stack_pos);
 
-		return reinterpret_cast<ObjectValue*>( static_cast<char*>(nullptr) + object_offset );
+		return reinterpret_cast<ObjectValue*>( static_cast<char*>(nullptr) + offset );
 	}
 	break;
 
@@ -703,13 +703,9 @@ void Parser::CorrectPointers_r( ValueBase& value )
 		{
 			ObjectValue& object_value= static_cast<ObjectValue&>(value);
 
-			const size_t entries_offset=
-				reinterpret_cast<const unsigned char*>(object_value.sub_objects) - static_cast<const unsigned char*>(nullptr);
-			object_value.sub_objects= reinterpret_cast<const ObjectValue::ObjectEntry*>( entries_offset + result_.storage.data() );
-
 			for( size_t i= 0u; i < object_value.object_count; i++ )
 			{
-				ObjectValue::ObjectEntry& entry= const_cast<ObjectValue::ObjectEntry&>(object_value.sub_objects[i]);
+				ObjectValue::ObjectEntry& entry= const_cast<ObjectValue::ObjectEntry&>(object_value.GetEntries()[i]);
 				entry.key= CorrectStringPointer( entry.key );
 
 				const size_t offset=
@@ -720,8 +716,8 @@ void Parser::CorrectPointers_r( ValueBase& value )
 			}
 
 			std::sort(
-				const_cast<ObjectValue::ObjectEntry*>(object_value.sub_objects),
-				const_cast<ObjectValue::ObjectEntry*>(object_value.sub_objects) + object_value.object_count,
+				const_cast<ObjectValue::ObjectEntry*>(object_value.GetEntries()),
+				const_cast<ObjectValue::ObjectEntry*>(object_value.GetEntries()) + object_value.object_count,
 				[](const ObjectValue::ObjectEntry& l, const ObjectValue::ObjectEntry& r ) -> bool
 				{
 					return StringCompare( l.key, r.key ) < 0;

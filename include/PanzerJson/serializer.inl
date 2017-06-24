@@ -55,9 +55,9 @@ void Serializer::Serialize_r( Stream& stream, const ValueBase& value )
 
 		for( size_t i= 0u; i < object.object_count; i++ )
 		{
-			SerializeString( stream, object.sub_objects[i].key );
+			SerializeString( stream, object.GetEntries()[i].key );
 			stream << ":";
-			Serialize_r( stream, *object.sub_objects[i].value );
+			Serialize_r( stream, *object.GetEntries()[i].value );
 			if( i < object.object_count - 1u )
 				stream << ",";
 		}

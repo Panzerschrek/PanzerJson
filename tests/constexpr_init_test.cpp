@@ -9,15 +9,22 @@ namespace SimpleValueTest
 static constexpr ValueBase simple_value( ValueBase::Type::Null );
 static constexpr NullValue simple_null_value;
 
-static constexpr ObjectValue::ObjectEntry object_entry0{ "foo", &simple_null_value };
-static constexpr ObjectValue simple_object_value0( &object_entry0, 1u );
-
-static constexpr ObjectValue::ObjectEntry objects_entry1[]
+static constexpr ObjectValueWithEntriesStorage<1u> simple_object_storage0
 {
-	{ "bar", &simple_null_value },
-	{ "foo", &simple_object_value0 },
+	ObjectValue(1u),
+	{
+		{ "foo", &simple_null_value }
+	}
 };
-static constexpr ObjectValue simple_object_value1( objects_entry1, 2u );
+
+static constexpr ObjectValueWithEntriesStorage<2u> simple_object_storage1
+{
+	ObjectValue(2u),
+	{
+		{ "bar", &simple_null_value },
+		{ "foo", &simple_object_storage0.value },
+	}
+};
 
 static constexpr StringValue strings[]
 {
@@ -28,7 +35,7 @@ static constexpr BoolValue bool_value_false(false);
 static constexpr BoolValue bool_value_true(true);
 
 static constexpr const ValueBase* strings_arr[]{ &strings[0], &strings[1], &strings[2] };
-static constexpr const ValueBase* objects_arr[]{ &simple_object_value0 };
+static constexpr const ValueBase* objects_arr[]{ &simple_object_storage0.value };
 static constexpr const ValueBase* null_values_arr[]{ &simple_null_value };
 
 static constexpr ArrayValue simple_array_value0( strings_arr, 3u );
