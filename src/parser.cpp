@@ -584,13 +584,56 @@ StringType Parser::ParseString()
 				break;
 
 			case 'u':
-				if( end_ - cur_ < 5 )
 				{
-					result_.error= Result::Error::UnexpectedEndOfFile;
-					return nullptr;
+					if( end_ - cur_ < 5 )
+					{
+						result_.error= Result::Error::UnexpectedEndOfFile;
+						return nullptr;
+					}
+					++cur_;
+
+					// Parse hex number.
+					size_t char_code= 0u;
+					for( size_t i= 0u; i < 4u; i++ )
+					{
+						size_t digit;
+						if( cur_[i] >= '0' && cur_[i] <= '9' )
+							digit= size_t( cur_[i] - '0' );
+						else if( cur_[i] >= 'a' && cur_[i] <= 'f' )
+							digit= size_t( cur_[i] - 'a' + 10 );
+						else if( cur_[i] >= 'A' && cur_[i] <= 'F' )
+							digit= size_t( cur_[i] - 'A' + 10 );
+						else
+						{
+							result_.error= Result::Error::UnexpectedLexem;
+							return nullptr;
+						}
+						char_code|= digit << ( ( 3u - i ) * 4u );
+					}
+
+					// Convert to UTF-8.
+					// Change this, if string format changed.
+					if( char_code <= 0x7Fu )
+						result_.storage.push_back( static_cast<unsigned char>( char_code ) );
+					else if( char_code <= 0x7FFu )
+					{
+						const size_t b0= 0xC0u | ( char_code >> 6u );
+						const size_t b1= 0x80u | ( char_code & 0x3Fu );
+						result_.storage.push_back( static_cast<unsigned char>(b0) );
+						result_.storage.push_back( static_cast<unsigned char>(b1) );
+					}
+					else// if( char_code <= 0xFFFFu )
+					{
+						const size_t b0= 0xE0u | (         ( char_code >> 12u ) );
+						const size_t b1= 0x80u | ( 0x3Fu & ( char_code >>  6u ) );
+						const size_t b2= 0x80u | ( 0x3Fu & ( char_code >>  0u ) );
+						result_.storage.push_back( static_cast<unsigned char>(b0) );
+						result_.storage.push_back( static_cast<unsigned char>(b1) );
+						result_.storage.push_back( static_cast<unsigned char>(b2) );
+					}
+
+					cur_+= 4u;
 				}
-				cur_+= 5;
-				result_.storage.push_back('?'); // TODO - support unicode.
 				break;
 
 			default:

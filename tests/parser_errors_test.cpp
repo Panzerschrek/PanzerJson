@@ -75,6 +75,15 @@ static void UnexpectedEndOfFileTestString1()
 	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
 }
 
+static void UnexpectedEndOfFileTestString2()
+{
+	// End of file in string after "\u".
+	static const char json_text[]= "\"str\\u45";
+
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedEndOfFile );
+}
+
 static void UnexpectedEndOfFileTestNumber0()
 {
 	// End of file in number - after fractional point.
@@ -295,6 +304,18 @@ static void UnexpectedLexemTestString0()
 	static const char json_text[]=
 	u8R"(
 			[ "string\Ütr" ]
+		)";
+
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert(result->error == Parser::Result::Error::UnexpectedLexem );
+}
+
+static void UnexpectedLexemTestString1()
+{
+	// Expected 4 hex numbers after \u
+	static const char json_text[]=
+	u8R"(
+			[ "string\utruad" ]
 		)";
 
 	const Parser::ResultPtr result= Parser().Parse( json_text );
@@ -543,6 +564,7 @@ void RunParserErrorsTests()
 	UnexpectedEndOfFileTestArray1();
 	UnexpectedEndOfFileTestString0();
 	UnexpectedEndOfFileTestString1();
+	UnexpectedEndOfFileTestString2();
 	UnexpectedEndOfFileTestNumber0();
 	UnexpectedEndOfFileTestNumber1();
 	UnexpectedEndOfFileTestNumber2();
@@ -564,6 +586,7 @@ void RunParserErrorsTests()
 	UnexpectedLexemTestNumber2();
 	UnexpectedLexemTestNumber3();
 	UnexpectedLexemTestString0();
+	UnexpectedLexemTestString1();
 	UnexpectedLexemTestBool0();
 	UnexpectedLexemTestBool1();
 	UnexpectedLexemTestBool2();

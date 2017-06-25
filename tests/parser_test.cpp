@@ -390,6 +390,21 @@ static void ComplexStrigParseTest()
 	test_assert( std::strcmp( result->root.AsString(), u8"ö  Ö  да---\n next line \t\t \\  \r" ) == 0 );
 }
 
+static void StringWithSymbolsCodesParseTest()
+{
+	// 'ж' - 0x0436, 2 utf-8 characters
+	// '→' - 0x2192, 3 utf-8 characters
+	static const char json_text[]=
+	u8R"(
+			"\u0436ало \u2192"
+		)";
+
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+	test_assert( result->error == Parser::Result::Error::NoError );
+	test_assert( result->root.GetType() == ValueBase::Type::String );
+	test_assert( std::strcmp( result->root.AsString(), u8"жало →" ) == 0 );
+}
+
 static void DepthHierarchyTest0()
 {
 	static const char json_text[]=
@@ -631,6 +646,7 @@ void RunParserTests()
 	ComplexObjectParseTest();
 	ComplexArrayParseTest();
 	ComplexStrigParseTest();
+	StringWithSymbolsCodesParseTest();
 	DepthHierarchyTest0();
 	DepthHierarchyTest1();
 	DepthHierarchyTest2();
