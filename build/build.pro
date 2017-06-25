@@ -8,7 +8,7 @@ INCLUDEPATH += OBJECTS_DIR # For test we need read temporary files, generated fr
 QMAKE_CXXFLAGS += -Wextra
 
 # Put path to your python here.
-PYTHON= "C:/Documents And Settings/Panzerschrek/Python/Python.exe"
+PYTHON= python
 
 SOURCES += \
 	../src/parser.cpp \
