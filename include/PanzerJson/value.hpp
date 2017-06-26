@@ -48,8 +48,8 @@ struct ValueBase
 };
 
 struct NullValue final
-	: private PaddingHelper< sizeof(void*) - sizeof(ValueBase) >
-	, public ValueBase
+	: public ValueBase
+	, private PaddingHelper< sizeof(void*) - sizeof(ValueBase) >
 {
 	constexpr NullValue() noexcept
 		: ValueBase(Type::Null)
@@ -110,8 +110,8 @@ struct ArrayValueWithElementsStorage final
 };
 
 struct StringValue final
-	: private PaddingHelper< sizeof(void*) - sizeof(ValueBase) >
-	, public ValueBase
+	: public ValueBase
+	, private PaddingHelper< sizeof(void*) - sizeof(ValueBase) >
 {
 	constexpr StringValue() noexcept
 		: ValueBase(Type::String)
