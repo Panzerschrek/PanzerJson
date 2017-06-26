@@ -28,6 +28,12 @@ static constexpr size_t PtrAlignedSize( const size_t size ) noexcept
 	return ( size + ( sizeof(void*) - 1u ) ) & ~( sizeof(void*) - 1u );
 }
 
+template<class T>
+static constexpr size_t PtrAlignedSize() noexcept
+{
+	return PtrAlignedSize( sizeof(T) );
+}
+
 Parser::Parser()
 {}
 
@@ -454,7 +460,7 @@ const ValueBase* Parser::Parse_r()
 			cur_+= 4;
 
 			const size_t offset= result_.storage.size();
-			result_.storage.resize( result_.storage.size() + sizeof(NullValue) );
+			result_.storage.resize( result_.storage.size() + PtrAlignedSize<NullValue>() );
 			NullValue* const value= reinterpret_cast<NullValue*>( result_.storage.data() + offset );
 
 			value->type= ValueBase::Type::Null;
@@ -497,7 +503,7 @@ const ValueBase* Parser::Parse_r()
 			}
 
 			const size_t offset= result_.storage.size();
-			result_.storage.resize( result_.storage.size() + sizeof(BoolValue) );
+			result_.storage.resize( result_.storage.size() + PtrAlignedSize<BoolValue>() );
 			BoolValue* const value= reinterpret_cast<BoolValue*>( result_.storage.data() + offset );
 
 			value->type= ValueBase::Type::Bool;

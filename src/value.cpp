@@ -12,38 +12,46 @@ namespace StaticAsserts
 
 constexpr bool is64bit= sizeof(void*) > 4u;
 constexpr size_t ptr_size= sizeof(void*);
+constexpr size_t enum_size= sizeof(ValueBase::Type);
 
 static_assert(
-	sizeof(NullValue) == ptr_size, // enum value
-	"NullValue expected to be smaller");
+	enum_size == 1u,
+	"Value::Type size must be 1");
+static_assert(
+	sizeof(ValueBase) == enum_size,
+	"Unexpected size of ValueBase");
 
 static_assert(
-	sizeof(ObjectValue) == ( is64bit ? ( ptr_size ) : ( sizeof(int32_t) * 2u ) ), // enum value + uint32
-	"ObjectValue expected to be smaller");
+	sizeof(NullValue) == enum_size, // enum value
+	"Unexpceted size of NullValue");
 
 static_assert(
-	sizeof(ArrayValue ) == ( is64bit ? ( ptr_size ) : ( sizeof(int32_t) * 2u ) ), // enum value + uint32
-	"Array expected to be smaller");
+	sizeof(ObjectValue) == ( is64bit ? ( ptr_size ) : ( sizeof(int32_t) * 2u ) ), // enum value + padding + uint32
+	"Unexpceted size of ObjectValue");
 
 static_assert(
-	sizeof(StringValue) == ptr_size, // enum value
-	"StringValue expected to be smaller");
+	sizeof(ArrayValue ) == ( is64bit ? ( ptr_size ) : ( sizeof(int32_t) * 2u ) ), // enum value + padding + uint32
+	"Unexpceted size of ArrayValue");
+
+static_assert(
+	sizeof(StringValue) == enum_size, // enum value
+	"Unexpceted size of StringValue");
 
 static_assert(
 	sizeof(NumberValue) == ( sizeof(int32_t) * 2u + sizeof(int64_t) + sizeof(double) ), // enum value + padding + int64 + double
-	"NumberValue expected to be smaller");
+	"Unexpceted size of NumberValue");
 
 static_assert(
-	sizeof(BoolValue) == ( is64bit ? (ptr_size) : ( 2u * ptr_size ) ), // enum value + bool
-	"BoolValue expected to be smaller");
+	sizeof(BoolValue) == enum_size + sizeof(bool), // enum value + bool
+	"Unexpceted size of BoolValue");
 
-static_assert( sizeof(NullValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
+// Nulls are not pointer-aligned.
 static_assert( sizeof(ObjectValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
 static_assert( sizeof(ObjectValue::ObjectEntry) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
 static_assert( sizeof(ArrayValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
-static_assert( sizeof(StringValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
+// Strings are not pointer-aligned.
 static_assert( sizeof(NumberValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
-static_assert( sizeof(BoolValue) % ptr_size == 0u, "Value classes must have pointer-scaled size." );
+// Bools are not pointer-aligned.
 
 static_assert(
 	sizeof(ObjectValueWithEntriesStorage<       0u>) == sizeof(ObjectValue) &&
@@ -58,12 +66,12 @@ static_assert(
 	"Arrays`s elements storage must have no gaps between array value and elements." );
 
 // String storage placed just after string value.
-// But, string strorage can have size, bigger, than needed, because padding added for enum/int32 values.
+// Alignmnet of string storage must be "1".
 static_assert(
-	sizeof(StringValueWithStorage<                   0u>) == sizeof(StringValue) &&
-	sizeof(StringValueWithStorage<                   1u>) == sizeof(StringValue) + sizeof(int32_t) &&
-	sizeof(StringValueWithStorage< sizeof(int32_t)     >) == sizeof(StringValue) + sizeof(int32_t) &&
-	sizeof(StringValueWithStorage< sizeof(int32_t) + 1u>) == sizeof(StringValue) + sizeof(int32_t) * 2u,
+	sizeof(StringValueWithStorage<       0u>) == sizeof(StringValue) &&
+	sizeof(StringValueWithStorage<       1u>) == sizeof(StringValue) + 1u &&
+	sizeof(StringValueWithStorage<       2u>) == sizeof(StringValue) + 2u &&
+	sizeof(StringValueWithStorage<10000000u>) == sizeof(StringValue) + 10000000u,
 	"Bad string storage" );
 
 // String storage placed just after number value.
