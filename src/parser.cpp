@@ -28,6 +28,12 @@ static constexpr size_t PtrAlignedSize( const size_t size ) noexcept
 	return ( size + ( sizeof(void*) - 1u ) ) & ~( sizeof(void*) - 1u );
 }
 
+static constexpr size_t NumberAlignedSize( const size_t size ) noexcept
+{
+	return ( size + ( sizeof(double) - 1u ) ) & ~( sizeof(double) - 1u );
+}
+
+
 template<class T>
 static constexpr size_t PtrAlignedSize() noexcept
 {
@@ -423,6 +429,8 @@ const ValueBase* Parser::Parse_r()
 			}
 
 			// Allocate number value.
+			// All storage is pointer-aligned, but numbers requires double-alignment, which can be bigger, than pointer alignment.
+			result_.storage.resize( NumberAlignedSize( result_.storage.size() ) );
 			const size_t offset= result_.storage.size();
 			result_.storage.resize( result_.storage.size() + sizeof(NumberValue) );
 			NumberValue* const value= reinterpret_cast<NumberValue*>( result_.storage.data() + offset );
