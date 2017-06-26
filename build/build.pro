@@ -5,6 +5,8 @@ CONFIG+= c++11
 INCLUDEPATH += "../include"
 INCLUDEPATH += OBJECTS_DIR # For test we need read temporary files, generated from jsons.
 
+DEFINES+= DEBUG
+
 QMAKE_CXXFLAGS += -Wextra
 
 # Put path to your python here.
@@ -28,6 +30,7 @@ HEADERS += \
 	../include/PanzerJson/serializer.inl \
 	../include/PanzerJson/value.inl \
 	../include/PanzerJson/value.hpp \
+	../src/panzer_json_assert.hpp \
 	../tests/tests.hpp \
 
 

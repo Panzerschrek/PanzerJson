@@ -1,7 +1,5 @@
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
+#pragma once
+#include "../src/panzer_json_assert.hpp"
 
-#include <cassert>
-#define test_assert(x) assert(x)
+#define test_assert(x) PJ_ASSERT(x)
 #define test_assert_near(x,y, eps) test_assert(std::abs((x) - (y)) <= std::abs(eps) )

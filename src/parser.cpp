@@ -1,7 +1,13 @@
 #include <algorithm>
 #include <cstring>
 
+#include "panzer_json_assert.hpp"
+
 #include "../include/PanzerJson/parser.hpp"
+
+#define ASSERT_ALIGNED( offset, alignment ) PJ_ASSERT( (offset) % alignment == 0u )
+#define ASSERT_PTR_ALIGNED( offset ) ASSERT_ALIGNED( offset, sizeof(void*) )
+#define ASSERT_NUMBER_ALIGNED( offset ) ASSERT_ALIGNED( offset, sizeof(double) )
 
 namespace PanzerJson
 {
@@ -131,6 +137,7 @@ const ValueBase* Parser::Parse_r()
 
 		const size_t entries_count= object_entries_stack_.size() - object_entries_stack_pos;
 		const size_t offset= result_.storage.size();
+		ASSERT_PTR_ALIGNED( offset );
 		result_.storage.resize(
 			result_.storage.size() +
 			sizeof(ObjectValue) +
@@ -204,6 +211,7 @@ const ValueBase* Parser::Parse_r()
 
 		const size_t element_count= array_elements_stack_.size() - array_elements_stack_pos;
 		const size_t offset= result_.storage.size();
+		ASSERT_PTR_ALIGNED( offset );
 		result_.storage.resize(
 			result_.storage.size() +
 			sizeof(ArrayValue) +
@@ -432,6 +440,7 @@ const ValueBase* Parser::Parse_r()
 			// All storage is pointer-aligned, but numbers requires double-alignment, which can be bigger, than pointer alignment.
 			result_.storage.resize( NumberAlignedSize( result_.storage.size() ) );
 			const size_t offset= result_.storage.size();
+			ASSERT_NUMBER_ALIGNED( offset );
 			result_.storage.resize( result_.storage.size() + sizeof(NumberValue) );
 			NumberValue* const value= reinterpret_cast<NumberValue*>( result_.storage.data() + offset );
 

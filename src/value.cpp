@@ -1,5 +1,7 @@
 #include <cstring>
 
+#include "panzer_json_assert.hpp"
+
 #include "../include/PanzerJson/value.hpp"
 
 namespace PanzerJson
@@ -173,7 +175,7 @@ Value::Value() noexcept
 Value::Value( const ValueBase* const value ) noexcept
 	: value_(value)
 {
-	// TODO - assert, if input value is nullptr
+	PJ_ASSERT( value_ != nullptr );
 }
 
 size_t Value::ElementCount() const noexcept
@@ -305,7 +307,7 @@ StringType Value::AsString() const noexcept
 		return static_cast<const BoolValue&>(*value_).value ? "true" : "false";
 	};
 
-	// TODO - assert here.
+	PJ_ASSERT( false && "Unexpected value type" );
 	return "";
 }
 
