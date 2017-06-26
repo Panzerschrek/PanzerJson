@@ -822,43 +822,57 @@ StringType Parser::CorrectStringPointer( const StringType str )
 
 Parser::ResultPtr Parser::Parse( const char* const json_text_null_teriminated )
 {
-	return Parse( json_text_null_teriminated, size_t(std::strlen(json_text_null_teriminated)) );
+	return
+		Parse(
+		json_text_null_teriminated,
+		json_text_null_teriminated == nullptr
+			? 0u
+			: size_t(std::strlen(json_text_null_teriminated)) );
 }
 
 Parser::ResultPtr Parser::Parse( const char* const json_text, const size_t json_text_length )
 {
-	start_= json_text;
-	end_= json_text + json_text_length;
-	end_minus_one_= end_ - 1u;
-	cur_= start_;
-
-	result_.error= Result::Error::NoError;
-	result_.error_pos= 0u;
-
-	array_elements_stack_.clear();
-	object_entries_stack_.clear();
-
-	const ValueBase* root= Parse_r();
 	bool all_ok= false;
 
-	if( result_.error == Result::Error::NoError )
+	if( json_text == nullptr || json_text_length == 0u )
 	{
-		SkipWhitespacesAtEnd();
+		result_.error= Result::Error::EmptyInput;
+		result_.error_pos= 0u;
+	}
+	else
+	{
+		start_= json_text;
+		end_= json_text + json_text_length;
+		end_minus_one_= end_ - 1u;
+		cur_= start_;
+
+		result_.error= Result::Error::NoError;
+		result_.error_pos= 0u;
+
+		array_elements_stack_.clear();
+		object_entries_stack_.clear();
+
+		const ValueBase* root= Parse_r();
+
 		if( result_.error == Result::Error::NoError )
 		{
-			const size_t offset=
-				reinterpret_cast<const unsigned char*>(root) - static_cast<const unsigned char*>(nullptr);
-			root= reinterpret_cast<const ValueBase*>( offset + result_.storage.data() );
-			CorrectPointers_r( const_cast<ValueBase&>(*root) );
-
-			if( enable_noncomposite_json_root_ ||
-				root->type == ValueBase::Type::Array || root->type == ValueBase::Type::Object )
+			SkipWhitespacesAtEnd();
+			if( result_.error == Result::Error::NoError )
 			{
-				result_.root= Value( root );
-				all_ok= true;
+				const size_t offset=
+					reinterpret_cast<const unsigned char*>(root) - static_cast<const unsigned char*>(nullptr);
+				root= reinterpret_cast<const ValueBase*>( offset + result_.storage.data() );
+				CorrectPointers_r( const_cast<ValueBase&>(*root) );
+
+				if( enable_noncomposite_json_root_ ||
+					root->type == ValueBase::Type::Array || root->type == ValueBase::Type::Object )
+				{
+					result_.root= Value( root );
+					all_ok= true;
+				}
+				else
+					result_.error= Result::Error::RootIsNotObjectOrArray;
 			}
-			else
-				result_.error= Result::Error::RootIsNotObjectOrArray;
 		}
 	}
 

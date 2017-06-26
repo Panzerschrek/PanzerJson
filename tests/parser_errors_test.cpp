@@ -3,6 +3,20 @@
 
 using namespace PanzerJson;
 
+static void EmptyInputTest0()
+{
+	// nullptr
+	const Parser::ResultPtr result= Parser().Parse( nullptr, 12u );
+	test_assert(result->error == Parser::Result::Error::EmptyInput );
+}
+
+static void EmptyInputTest1()
+{
+	// Empty string.
+	const Parser::ResultPtr result= Parser().Parse( "" );
+	test_assert(result->error == Parser::Result::Error::EmptyInput );
+}
+
 static void UnexpectedEndOfFileTestObject0()
 {
 	// End of file in object.
@@ -557,6 +571,8 @@ static void ControlCharacterInsideStringTest4()
 
 void RunParserErrorsTests()
 {
+	EmptyInputTest0();
+	EmptyInputTest1();
 	UnexpectedEndOfFileTestObject0();
 	UnexpectedEndOfFileTestObject1();
 	UnexpectedEndOfFileTestObject2();

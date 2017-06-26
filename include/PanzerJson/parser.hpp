@@ -23,6 +23,7 @@ public:
 		enum class Error
 		{
 			NoError,
+			EmptyInput,
 			UnexpectedLexem,
 			ControlCharacterInsideString,
 			UnexpectedEndOfFile,
