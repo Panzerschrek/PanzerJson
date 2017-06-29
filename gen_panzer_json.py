@@ -86,6 +86,11 @@ string_values_data_pool= dict()
 
 # Some params
 save_string_for_numbers= False
+pack_strings_into_struct= True
+
+strings_struct_name= "strings"
+strings_struct_stream= ""
+strings_struct_initializer_stream= ""
 
 # Returns pair of strings.
 # First string - preinitializers, second string - name.
@@ -156,23 +161,46 @@ def WritePanzerJsonValue( json_struct ):
 	if type(json_struct) is str:
 		# Use strings pooling - emit same value once.
 		global string_values_pool
+		global pack_strings_into_struct
 		pool_value = string_values_pool.get( json_struct, None )
 
 		if pool_value is None:
 
-			storage_name= "string_storage" + NextCounter()
-			var_name= storage_name + ".value"
-			string_values_pool[ json_struct ]= var_name
-			quoted_string= MakeQuotedEscapedString(json_struct)
-			str_length= str(len(json_struct.encode("utf-8")) + 1) + "u"
-			result_string_storage= "constexpr StringValueWithStorage<" + str_length + "> " + storage_name + \
-			"\n{\n" + "\tStringValue(),\n" + "\t" + quoted_string + "\n};\n\n"
+			if pack_strings_into_struct:
+				global strings_struct_name
+				global strings_struct_stream
+				global strings_struct_initializer_stream
 
-			# Also, save pointer to storage of string value.
-			# We can use this pointer, also, for objects keys.
-			string_values_data_pool[ json_struct ]= storage_name + ".string"
+				storage_name= "s" + NextCounter()
+				var_name= strings_struct_name + "." + storage_name + ".value"
+				string_values_pool[ json_struct ]= var_name
 
-			return [ result_string_storage, var_name ]
+				quoted_string= MakeQuotedEscapedString(json_struct)
+				str_length= str(len(json_struct.encode("utf-8")) + 1) + "u"
+
+				strings_struct_stream+= "\tStringValueWithStorage<" + str_length + "> " + storage_name + ";\n"
+				strings_struct_initializer_stream+= "\t{ StringValue(), " + quoted_string + " },\n"
+
+				# Also, save pointer to storage of string value.
+				# We can use this pointer, also, for objects keys.
+				string_values_data_pool[ json_struct ]= strings_struct_name + "." + storage_name + ".string"
+
+				return [ "", var_name ]
+
+			else:
+				storage_name= "string_storage" + NextCounter()
+				var_name= storage_name + ".value"
+				string_values_pool[ json_struct ]= var_name
+				quoted_string= MakeQuotedEscapedString(json_struct)
+				str_length= str(len(json_struct.encode("utf-8")) + 1) + "u"
+				result_string_storage= "constexpr StringValueWithStorage<" + str_length + "> " + storage_name + \
+				"\n{\n" + "\tStringValue(),\n" + "\t" + quoted_string + "\n};\n\n"
+
+				# Also, save pointer to storage of string value.
+				# We can use this pointer, also, for objects keys.
+				string_values_data_pool[ json_struct ]= storage_name + ".string"
+
+				return [ result_string_storage, var_name ]
 
 		else:
 			return [ "", pool_value ]
@@ -239,14 +267,27 @@ def WritePanzerJsonValue( json_struct ):
 	return [ "", "" ]
 
 def WritePanzerJsonCpp( json_struct, h_file_name, variable_name ):
+
+	global pack_strings_into_struct
+	global strings_struct_name
+	global strings_struct_stream
+	global strings_struct_initializer_stream
+
 	root_value= WritePanzerJsonValue( json_struct )
 
 	result= "#include <PanzerJson/value.hpp>\n\n"
-	result= result + "#include \"" + h_file_name + "\"\n\n"
-	result= result + "namespace\n{\n\n"
-	result= result + "using namespace PanzerJson;\n\n"
-	result= result + root_value[0]
-	result= result + "} //namespace\n\n"
+	result+= "#include \"" + h_file_name + "\"\n\n"
+	result+= "namespace\n{\n\n"
+	result+= "using namespace PanzerJson;\n\n"
+
+	if pack_strings_into_struct:
+		result+= "struct StringsStorage final\n{\n"
+		result+= strings_struct_stream
+		result+= "};\n\n"
+		result+= "constexpr StringsStorage " + strings_struct_name + "\n{\n" + strings_struct_initializer_stream + "};\n\n"
+
+	result+= root_value[0]
+	result+= "} //namespace\n\n"
 	result= result + "const PanzerJson::ValueBase& " + variable_name + "= " + root_value[1] + ";\n"
 	return result
 
@@ -257,21 +298,31 @@ def WritePanzerJsonHpp( variable_name ):
 	return result
 
 def main():
+	global save_string_for_numbers
+	global pack_strings_into_struct
+
 	parser = argparse.ArgumentParser(description='Process some integers.')
 	parser.add_argument( "-i", help= "input json file", type=str )
 	parser.add_argument( "-o", help= "output cpp/hpp file name base", type=str )
 	parser.add_argument( "-n", help= "name of result variable", type=str )
 	parser.add_argument( "-s", help= "save or not strings for numbers", action="store_true" )
+	parser.add_argument( "--do-not-pack-strings", help= "Do not pack string values into struct", action="store_true" )
 
 	args= parser.parse_args()
 
 	save_string_for_numbers= args.s
+	pack_strings_into_struct= not args.do_not_pack_strings
 
 	print( "Convert \"" + args.i + "\" to \"" + args.o + "\"" )
 	if save_string_for_numbers:
 		print( "Save numbers strings" )
 	else:
 		print( "Do not save numbers strings" )
+
+	if pack_strings_into_struct:
+		print( "Pack strings into struct" )
+	else:
+		print( "Do not pack strings into struct" )
 
 	cpp_file= args.o + ".cpp"
 	hpp_file= args.o + ".hpp"
