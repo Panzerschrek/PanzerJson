@@ -73,6 +73,7 @@ public:
 	void ResetCaches();
 
 private:
+	void PrepareFrequentValues();
 	const ValueBase* Parse_r(); // Can set error flag.
 	StringType ParseString(); // Can set error flag.
 	void SkipWhitespaces(); // Can set error flag.

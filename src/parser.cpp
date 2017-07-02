@@ -12,6 +12,33 @@
 namespace PanzerJson
 {
 
+struct FrequentValues final
+{
+	NullValue null_value;
+	BoolValue true_value;
+	BoolValue false_value;
+	char padding[3u];
+	// TODO - maybe reuse zero too?
+	// TODO - maybe reuse empty strings, arrays objects?
+};
+
+static_assert( sizeof(FrequentValues) % sizeof(double) == 0u, "This struct must have number-aligned size." );
+
+static constexpr FrequentValues g_frequent_values
+{
+	NullValue(),
+	BoolValue( true ),
+	BoolValue( false ),
+	{ 0 },
+};
+
+static constexpr size_t g_null_value_offset=
+	reinterpret_cast<const char*>( &g_frequent_values.null_value ) - reinterpret_cast<const char*>( &g_frequent_values );
+static constexpr size_t g_true_value_offset=
+	reinterpret_cast<const char*>( &g_frequent_values.true_value ) - reinterpret_cast<const char*>( &g_frequent_values );
+static constexpr size_t g_false_value_offset=
+	reinterpret_cast<const char*>( &g_frequent_values.false_value ) - reinterpret_cast<const char*>( &g_frequent_values );
+
 // For big powers.
 // Method is faster for big powers - complexity is about O(log2(power)).
 static double TenPowerDouble( const unsigned int power ) noexcept
@@ -51,6 +78,16 @@ Parser::Parser()
 
 Parser::~Parser()
 {
+}
+
+void Parser::PrepareFrequentValues()
+{
+	PJ_ASSERT( result_.storage.empty() );
+
+	// Reuse null, true, false values. Put this values at start of storage, then
+	// use them all times, when they need.
+	result_.storage.resize( sizeof(FrequentValues) );
+	std::memcpy( result_.storage.data(), &g_frequent_values, sizeof(FrequentValues) );
 }
 
 const ValueBase* Parser::Parse_r()
@@ -476,14 +513,7 @@ const ValueBase* Parser::Parse_r()
 			}
 			cur_+= 4;
 
-			const size_t offset= result_.storage.size();
-			result_.storage.resize( result_.storage.size() + PtrAlignedSize<NullValue>() );
-			NullValue* const value= reinterpret_cast<NullValue*>( result_.storage.data() + offset );
-
-			value->type= ValueBase::Type::Null;
-
-			return reinterpret_cast<NullValue*>( static_cast<char*>(nullptr) + offset );
-
+			return reinterpret_cast<NullValue*>( static_cast<char*>(nullptr) + g_null_value_offset );
 		}
 		else if( *cur_ == 't' || *cur_ == 'f' )
 		{
@@ -519,14 +549,10 @@ const ValueBase* Parser::Parse_r()
 				bool_value= false;
 			}
 
-			const size_t offset= result_.storage.size();
-			result_.storage.resize( result_.storage.size() + PtrAlignedSize<BoolValue>() );
-			BoolValue* const value= reinterpret_cast<BoolValue*>( result_.storage.data() + offset );
-
-			value->type= ValueBase::Type::Bool;
-			value->value= bool_value;
-
-			return reinterpret_cast<BoolValue*>( static_cast<char*>(nullptr) + offset );
+			return
+				reinterpret_cast<BoolValue*>(
+					static_cast<char*>(nullptr) +
+					bool_value ? g_true_value_offset : g_false_value_offset );
 		}
 		else
 		{
@@ -852,6 +878,7 @@ Parser::ResultPtr Parser::Parse( const char* const json_text, const size_t json_
 		array_elements_stack_.clear();
 		object_entries_stack_.clear();
 
+		PrepareFrequentValues();
 		const ValueBase* root= Parse_r();
 
 		if( result_.error == Result::Error::NoError )

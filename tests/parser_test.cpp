@@ -39,6 +39,51 @@ static void SimpleStringParseTest()
 	test_assert( std::strcmp( result->root.AsString(), u8"Ü" ) == 0 );
 }
 
+static void SumpleNullParseTest()
+{
+	static const char json_text[]=
+	u8R"(
+		{
+			"foo" : null,
+			"bar" : {},
+			"baz" : null,
+			"wtf" : [ 5, "str", null ]
+		}
+	)";
+
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+
+	test_assert( result->error == Parser::Result::Error::NoError );
+	test_assert( result->root["foo"].IsNull() );
+	test_assert( result->root["baz"].IsNull() );
+	test_assert( result->root["wtf"][2u].IsNull() );
+}
+
+static void SumpleBoolParseTest()
+{
+	static const char json_text[]=
+	u8R"(
+		{
+			"must_be_false" : false,
+			"foo" : true,
+			"bar" : {},
+			"baz" : true,
+			"wtf" : [ 5, "str", false, "str2", true ],
+			"must_be_true_inside" : [ true ]
+		}
+	)";
+
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+
+	test_assert( result->error == Parser::Result::Error::NoError );
+	test_assert( result->root["must_be_false"].IsBool() && result->root["must_be_false"].AsInt() == 0 );
+	test_assert( result->root["foo"].IsBool() && result->root["foo"].AsInt() == 1 );
+	test_assert( result->root["baz"].IsBool() && result->root["baz"].AsInt() == 1 );
+	test_assert( result->root["wtf"][2u].IsBool() && result->root["wtf"][2u].AsInt() == 0 );
+	test_assert( result->root["wtf"][4u].IsBool() && result->root["wtf"][4u].AsInt() == 1 );
+	test_assert( result->root["must_be_true_inside"][0u].IsBool() && result->root["must_be_true_inside"][0u].AsInt() == 1 );
+}
+
 static void SimpleNumberParseTest()
 {
 	static const char json_text[]= "88667";
@@ -618,6 +663,8 @@ void RunParserTests()
 	SimpleObjectParseTest();
 	SimpleArrayParseTest();
 	SimpleStringParseTest();
+	SumpleNullParseTest();
+	SumpleBoolParseTest();
 	SimpleNumberParseTest();
 	SimpleNegativeNumberParseTest();
 	LongIntegerParseTest();
