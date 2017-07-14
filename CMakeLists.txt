@@ -17,4 +17,16 @@ set( PANZER_JSON_HEADERS
 	"include/PanzerJson/serializer.hpp"
 )
 
-add_library(PanzerJson_lib, ${PANZER_JSON_SOURCES} ${PANZER_JSON_HEADERS} )
+add_library( PanzerJsonLib ${PANZER_JSON_SOURCES} ${PANZER_JSON_HEADERS} )
+
+
+set( PANZER_JSON_TESTS
+	"tests/constexpr_init_test.cpp"
+	"tests/parser_errors_test.cpp"
+	"tests/parser_test.cpp"
+	"tests/tests_main.cpp"
+	"tests/value_test.cpp"
+)
+
+add_executable( PanzerJson_Tests ${PANZER_JSON_TESTS} )
+target_link_libraries( PanzerJson_Tests PanzerJsonLib )
