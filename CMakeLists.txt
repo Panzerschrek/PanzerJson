@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 
 project(PanzerJson)
 
-set (CMAKE_CXX_STANDARD 11)
+set( CMAKE_CXX_STANDARD 11 )
 
 set( PANZER_JSON_SOURCES 
 	"src/panzer_json_assert.hpp"
@@ -25,29 +25,31 @@ add_library( PanzerJsonLib ${PANZER_JSON_SOURCES} ${PANZER_JSON_HEADERS} )
 
 include_directories( "include" )
 include_directories( ${CMAKE_BINARY_DIR} )
+include_directories( ${CMAKE_BINARY_DIR}/gen )
 
 set( TEST_JSONS 
-	"../tests/test_jsons/complex_object.json"
-	"../tests/test_jsons/int_convert_test.json"
-	"../tests/test_jsons/simple_object.json"
-	"../tests/test_jsons/sort_test.json"
-	"../tests/test_jsons/utf8_test.json"
-	"../tests/test_jsons/null_and_bool_values_pooling_test.json"
-	"../tests/test_jsons/numbers_pooling_test.json"
-	"../tests/test_jsons/strings_pooling_test.json"
-	"../tests/test_jsons/objects_and_arrays_pooling_test.json"
-	"../tests/test_jsons/string_values_as_key_reuse_test.json" )
+	"tests/test_jsons/complex_object.json"
+	"tests/test_jsons/int_convert_test.json"
+	"tests/test_jsons/simple_object.json"
+	"tests/test_jsons/sort_test.json"
+	"tests/test_jsons/utf8_test.json"
+	"tests/test_jsons/null_and_bool_values_pooling_test.json"
+	"tests/test_jsons/numbers_pooling_test.json"
+	"tests/test_jsons/strings_pooling_test.json"
+	"tests/test_jsons/objects_and_arrays_pooling_test.json"
+	"tests/test_jsons/string_values_as_key_reuse_test.json" )
 
-foreach(F ${TEST_JSONS})
-    get_filename_component( FILE_NAME ${F} NAME_WE )
-    add_custom_command(
-        OUTPUT gen_${FILE_NAME}.cpp
-        COMMAND python ../gen_panzer_json.py -o gen_${FILE_NAME} -i ${F} -n ${FILE_NAME}
-        COMMENT "Compiling ${FILE_NAME} to cpp file")
-    list (APPEND COMPILED_JSONS gen_${FILE_NAME}.cpp )
+foreach( F ${TEST_JSONS} )
+	get_filename_component( FILE_NAME ${F} NAME_WE )
+	set( SCRIPT_COMMAND python ${CMAKE_SOURCE_DIR}/gen_panzer_json.py )
+	set( OUT_FILE_BASE gen/gen_${FILE_NAME} )
+	set( OUT_CPP_FILE ${OUT_FILE_BASE}.cpp )
+	add_custom_command(
+		OUTPUT ${OUT_CPP_FILE}
+		COMMAND ${SCRIPT_COMMAND} -o ${OUT_FILE_BASE} -i ${CMAKE_SOURCE_DIR}/${F} -n ${FILE_NAME}
+		COMMENT "Compiling ${FILE_NAME} to cpp file")
+	list( APPEND COMPILED_JSONS ${OUT_CPP_FILE} )
 endforeach()
-
-#add_custom_target( BuildJsons ALL ${COMPILED_JSONS})
 
 set( PANZER_JSON_TESTS
 	"tests/constexpr_init_test.cpp"
