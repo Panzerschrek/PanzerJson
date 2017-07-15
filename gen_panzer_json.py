@@ -329,6 +329,13 @@ def main():
 
 	cpp_file= args.o + ".cpp"
 	hpp_file= args.o + ".hpp"
+	
+	out_dir= os.path.dirname( args.o )
+	try:
+		os.mkdir( out_dir )
+	except OSError:
+		if not os.path.isdir( out_dir ):
+			raise
 
 	file_content= LoadFile( args.i )
 	json_struct= ParseJson( file_content )
