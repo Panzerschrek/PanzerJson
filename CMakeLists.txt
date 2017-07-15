@@ -26,7 +26,11 @@ set( PANZER_JSON_HEADERS
 
 add_library( PanzerJsonLib ${PANZER_JSON_SOURCES} ${PANZER_JSON_HEADERS} )
 
-#tests stuff
+# Disable tests, if "-DPANZER_JSON_TESTS=no"
+if( NOT ${PANZER_JSON_TESTS} )
+	return()
+endif()
+message( STATUS "Generate PanzerJson tests\n" )
 
 include_directories( "include" )
 include_directories( ${CMAKE_BINARY_DIR} )
