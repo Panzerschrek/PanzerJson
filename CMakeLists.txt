@@ -4,6 +4,11 @@ project(PanzerJson)
 
 set( CMAKE_CXX_STANDARD 11 )
 
+if( ${CMAKE_BUILD_TYPE} STREQUAL Debug )
+	add_definitions( -DDEBUG )
+else()
+endif()
+
 set( PANZER_JSON_SOURCES 
 	"src/panzer_json_assert.hpp"
 	"src/parser.cpp"
