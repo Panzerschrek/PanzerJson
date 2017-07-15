@@ -61,9 +61,17 @@ set( PANZER_JSON_TESTS
 	"tests/parser_errors_test.cpp"
 	"tests/parser_test.cpp"
 	"tests/parsers_equality_test.cpp"
+	"tests/tests.hpp"
 	"tests/tests_main.cpp"
 	"tests/value_test.cpp"
 )
 
 add_executable( PanzerJson_Tests ${PANZER_JSON_TESTS} ${COMPILED_JSONS} )
 target_link_libraries( PanzerJson_Tests PanzerJsonLib )
+
+add_custom_target(
+	PanzerJson_Tests_Run ALL
+	COMMAND PanzerJson_Tests
+	DEPENDS PanzerJson_Tests
+	COMMENT "Run tests"
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
