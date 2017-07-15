@@ -53,9 +53,11 @@ foreach( F ${TEST_JSONS} )
 	set( SCRIPT_COMMAND python ${CMAKE_SOURCE_DIR}/gen_panzer_json.py )
 	set( OUT_FILE_BASE gen/gen_${FILE_NAME} )
 	set( OUT_CPP_FILE ${OUT_FILE_BASE}.cpp )
+	set( SRC_FILE ${CMAKE_SOURCE_DIR}/${F} )
 	add_custom_command(
 		OUTPUT ${OUT_CPP_FILE}
-		COMMAND ${SCRIPT_COMMAND} -o ${OUT_FILE_BASE} -i ${CMAKE_SOURCE_DIR}/${F} -n ${FILE_NAME}
+		DEPENDS ${SRC_FILE}
+		COMMAND ${SCRIPT_COMMAND} -o ${OUT_FILE_BASE} -i ${SRC_FILE} -n ${FILE_NAME}
 		COMMENT "Compiling ${FILE_NAME} to cpp file")
 	list( APPEND COMPILED_JSONS ${OUT_CPP_FILE} )
 endforeach()
