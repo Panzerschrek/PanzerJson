@@ -57,8 +57,7 @@ foreach( F ${TEST_JSONS} )
 	add_custom_command(
 		OUTPUT ${OUT_CPP_FILE}
 		DEPENDS ${SRC_FILE}
-		COMMAND ${SCRIPT_COMMAND} -o ${OUT_FILE_BASE} -i ${SRC_FILE} -n ${FILE_NAME}
-		COMMENT "Compiling ${FILE_NAME} to cpp file")
+		COMMAND ${SCRIPT_COMMAND} -o ${OUT_FILE_BASE} -i ${SRC_FILE} -n ${FILE_NAME} )
 	list( APPEND COMPILED_JSONS ${OUT_CPP_FILE} )
 endforeach()
 
