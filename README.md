@@ -1,4 +1,5 @@
 ## PanzerJson
+[![Build Status (master)](https://travis-ci.org/Panzerschrek/PanzerJson.svg?branch=master)](https://travis-ci.org/Panzerschrek/PanzerJson)
 
 "PanzerJson" is a C++ library for JSON reading.
 
