@@ -50,7 +50,7 @@ set( TEST_JSONS
 
 foreach( F ${TEST_JSONS} )
 	get_filename_component( FILE_NAME ${F} NAME_WE )
-	set( SCRIPT_COMMAND python ${CMAKE_SOURCE_DIR}/gen_panzer_json.py )
+	set( SCRIPT_COMMAND python3 ${CMAKE_SOURCE_DIR}/gen_panzer_json.py )
 	set( OUT_FILE_BASE gen/gen_${FILE_NAME} )
 	set( OUT_CPP_FILE ${OUT_FILE_BASE}.cpp )
 	set( SRC_FILE ${CMAKE_SOURCE_DIR}/${F} )
