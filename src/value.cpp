@@ -266,6 +266,11 @@ double Value::AsDouble() const noexcept
 	return 0.0;
 }
 
+float Value::AsFloat() const noexcept
+{
+	return static_cast<float>(AsDouble());
+}
+
 int64_t Value::AsInt64() const noexcept
 {
 	if( value_->type == ValueBase::Type::Number )

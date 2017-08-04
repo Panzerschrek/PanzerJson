@@ -194,6 +194,7 @@ public:
 	// For boolnean values returns "0" or "1".
 	// For string, object, array objects returns "0".
 	double AsDouble() const noexcept;
+	float AsFloat() const noexcept;
 	int64_t AsInt64() const noexcept;
 	uint64_t AsUint64() const noexcept;
 	int32_t AsInt() const noexcept;
