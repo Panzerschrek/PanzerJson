@@ -11,7 +11,7 @@ void Serializer::GenNumberValueString( const NumberValue& number_value )
 	if( std::floor( number_value.double_value ) != number_value.double_value )
 	{
 		// Has nonzero fractional part - write as double.
-		GenDoubleValueString( number_value.double_value );
+		GenDoubleValueString( number_value.double_value, num_str_ );
 		return;
 	}
 
@@ -23,12 +23,12 @@ void Serializer::GenNumberValueString( const NumberValue& number_value )
 		if( number_value.double_value > static_cast<double>( std::numeric_limits<uint64_t>::max() ) )
 		{
 			// Double value is bigger, than int range, write as double.
-			GenDoubleValueString( number_value.double_value );
+			GenDoubleValueString( number_value.double_value, num_str_ );
 			return;
 		}
 		else
 		{
-			GenUintValueString( int_val );
+			GenUintValueString( int_val, num_str_ );
 			return;
 		}
 	}
@@ -37,30 +37,15 @@ void Serializer::GenNumberValueString( const NumberValue& number_value )
 		if( number_value.double_value < static_cast<double>( std::numeric_limits<int64_t>::min() ) )
 		{
 			// Absolute double value is bigger, than int range, write as double.
-			GenDoubleValueString( number_value.double_value );
+			GenDoubleValueString( number_value.double_value, num_str_ );
 			return;
 		}
 		else
 		{
-			GenIntValueString( number_value.int_value );
+			GenIntValueString( number_value.int_value, num_str_ );
 			return;
 		}
 	}
-}
-
-void Serializer::GenDoubleValueString( const double val )
-{
-	std::snprintf( num_str_, sizeof(num_str_), "%1.22e", val );
-}
-
-void Serializer::GenIntValueString ( const int64_t  val )
-{
-	std::snprintf( num_str_, sizeof(num_str_), "%lld", val );
-}
-
-void Serializer::GenUintValueString( const uint64_t val )
-{
-	std::snprintf( num_str_, sizeof(num_str_), "%llu", val );
 }
 
 } // namespace PanzerJson

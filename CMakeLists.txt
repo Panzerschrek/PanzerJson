@@ -10,18 +10,24 @@ else()
 endif()
 
 set( PANZER_JSON_SOURCES 
-	"src/panzer_json_assert.hpp"
-	"src/parser.cpp"
-	"src/serializer.cpp"
-	"src/value.cpp" 
+	src/panzer_json_assert.hpp
+	src/parser.cpp
+	src/serializer.cpp
+	src/serializers_common.cpp
+	src/serializers_common.hpp
+	src/serializers_common.inl
+	src/value.cpp
 )
 
 set( PANZER_JSON_HEADERS
-	"include/PanzerJson/fwd.hpp"
-	"include/PanzerJson/value.hpp"
-	"include/PanzerJson/value.inl"
-	"include/PanzerJson/parser.hpp"
-	"include/PanzerJson/serializer.hpp"
+	include/PanzerJson/fwd.hpp
+	include/PanzerJson/value.hpp
+	include/PanzerJson/value.inl
+	include/PanzerJson/parser.hpp
+	include/PanzerJson/serializer.hpp
+	include/PanzerJson/serializer.inl
+	include/PanzerJson/streamed_serializer.hpp
+	include/PanzerJson/streamed_serializer.inl
 )
 
 add_library( PanzerJsonLib ${PANZER_JSON_SOURCES} ${PANZER_JSON_HEADERS} )
