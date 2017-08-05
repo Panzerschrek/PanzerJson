@@ -111,6 +111,7 @@ const ValueBase* Parser::Parse_r()
 
 		const size_t object_entries_stack_pos= object_entries_stack_.size();
 
+		SkipWhitespaces();
 		if( *cur_ == '}' )
 			++cur_;
 		else
@@ -207,10 +208,9 @@ const ValueBase* Parser::Parse_r()
 
 		const size_t array_elements_stack_pos= array_elements_stack_.size();
 
+		SkipWhitespaces();
 		if( *cur_ == ']' )
-		{
 			++cur_;
-		}
 		else
 		{
 			while(true)

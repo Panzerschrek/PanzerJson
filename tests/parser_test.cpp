@@ -6,7 +6,7 @@
 
 using namespace PanzerJson;
 
-static void SimpleObjectParseTest()
+static void SimpleObjectParseTest0()
 {
 	static const char json_text[]= "{}";
 
@@ -17,7 +17,31 @@ static void SimpleObjectParseTest()
 	test_assert( result->root.ElementCount() == 0u );
 }
 
-static void SimpleArrayParseTest()
+static void SimpleObjectParseTest1()
+{
+	// Formatted
+	static const char json_text[]= "{\n}";
+
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+
+	test_assert( result->error == Parser::Result::Error::NoError );
+	test_assert( result->root.GetType() == ValueBase::Type::Object );
+	test_assert( result->root.ElementCount() == 0u );
+}
+
+static void SimpleObjectParseTest2()
+{
+	//More formatted
+	static const char json_text[]= "{\n   \n\t}";
+
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+
+	test_assert( result->error == Parser::Result::Error::NoError );
+	test_assert( result->root.GetType() == ValueBase::Type::Object );
+	test_assert( result->root.ElementCount() == 0u );
+}
+
+static void SimpleArrayParseTest0()
 {
 	static const char json_text[]= "[]";
 
@@ -27,6 +51,31 @@ static void SimpleArrayParseTest()
 	test_assert( result->root.GetType() == ValueBase::Type::Array );
 	test_assert( result->root.ElementCount() == 0u );
 }
+
+static void SimpleArrayParseTest1()
+{
+	// Formatted
+	static const char json_text[]= "[\n]";
+
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+
+	test_assert( result->error == Parser::Result::Error::NoError );
+	test_assert( result->root.GetType() == ValueBase::Type::Array );
+	test_assert( result->root.ElementCount() == 0u );
+}
+
+static void SimpleArrayParseTest2()
+{
+	//More formatted
+	static const char json_text[]= "[\n   \n\t]";
+
+	const Parser::ResultPtr result= Parser().Parse( json_text );
+
+	test_assert( result->error == Parser::Result::Error::NoError );
+	test_assert( result->root.GetType() == ValueBase::Type::Array );
+	test_assert( result->root.ElementCount() == 0u );
+}
+
 
 static void SimpleStringParseTest()
 {
@@ -660,8 +709,12 @@ static void CommentsTest2()
 
 void RunParserTests()
 {
-	SimpleObjectParseTest();
-	SimpleArrayParseTest();
+	SimpleObjectParseTest0();
+	SimpleObjectParseTest1();
+	SimpleObjectParseTest2();
+	SimpleArrayParseTest0();
+	SimpleArrayParseTest1();
+	SimpleArrayParseTest2();
 	SimpleStringParseTest();
 	SumpleNullParseTest();
 	SumpleBoolParseTest();
