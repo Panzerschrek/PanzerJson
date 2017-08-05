@@ -7,20 +7,20 @@ namespace PanzerJson
 // StreamedSerializer
 
 template<class StreamT, SerializationFormatting formatting>
-StreamedSerializer<StreamT, formatting>::StreamedSerializer( StreamT& stream ) noexcept
+StreamedSerializer<StreamT, formatting>::StreamedSerializer( StreamT& stream )
 	: stream_(stream)
 {}
 
 template<class StreamT, SerializationFormatting formatting>
 typename StreamedSerializer<StreamT, formatting>::ObjectSerializer
-StreamedSerializer<StreamT, formatting>::AddObject() noexcept
+StreamedSerializer<StreamT, formatting>::AddObject()
 {
 	return ObjectSerializer( stream_, 0u );
 }
 
 template<class StreamT, SerializationFormatting formatting>
 typename StreamedSerializer<StreamT, formatting>::ArraySerializer
-StreamedSerializer<StreamT, formatting>::AddArray() noexcept
+StreamedSerializer<StreamT, formatting>::AddArray()
 {
 	return ArraySerializer( stream_, 0u );
 }
@@ -28,7 +28,7 @@ StreamedSerializer<StreamT, formatting>::AddArray() noexcept
 // ArraySerializer
 
 template<class StreamT, SerializationFormatting formatting>
-StreamedSerializer<StreamT, formatting>::ArraySerializer::ArraySerializer( StreamT& stream, const size_t parent_indent ) noexcept
+StreamedSerializer<StreamT, formatting>::ArraySerializer::ArraySerializer( StreamT& stream, const size_t parent_indent )
 	: stream_( &stream )
 	, indent_( parent_indent )
 {
@@ -71,7 +71,7 @@ StreamedSerializer<StreamT, formatting>::ArraySerializer::~ArraySerializer()
 }
 
 template<class StreamT, SerializationFormatting formatting>
-void StreamedSerializer<StreamT, formatting>::ArraySerializer::AddNull() noexcept
+void StreamedSerializer<StreamT, formatting>::ArraySerializer::AddNull()
 {
 	PJ_ASSERT( stream_ != nullptr );
 	StartNewElement();
@@ -80,7 +80,7 @@ void StreamedSerializer<StreamT, formatting>::ArraySerializer::AddNull() noexcep
 
 template<class StreamT, SerializationFormatting formatting>
 typename StreamedSerializer<StreamT, formatting>::ObjectSerializer
-StreamedSerializer<StreamT, formatting>::ArraySerializer::AddObject() noexcept
+StreamedSerializer<StreamT, formatting>::ArraySerializer::AddObject()
 {
 	PJ_ASSERT( stream_ != nullptr );
 	StartNewElement( true );
@@ -91,7 +91,7 @@ StreamedSerializer<StreamT, formatting>::ArraySerializer::AddObject() noexcept
 
 template<class StreamT, SerializationFormatting formatting>
 typename StreamedSerializer<StreamT, formatting>::ArraySerializer
-StreamedSerializer<StreamT, formatting>::ArraySerializer::AddArray() noexcept
+StreamedSerializer<StreamT, formatting>::ArraySerializer::AddArray()
 {
 	PJ_ASSERT( stream_ != nullptr );
 	StartNewElement( true );
@@ -101,7 +101,7 @@ StreamedSerializer<StreamT, formatting>::ArraySerializer::AddArray() noexcept
 }
 
 template<class StreamT, SerializationFormatting formatting>
-void StreamedSerializer<StreamT, formatting>::ArraySerializer::AddString( const StringType& string ) noexcept
+void StreamedSerializer<StreamT, formatting>::ArraySerializer::AddString( const StringType& string )
 {
 	PJ_ASSERT( stream_ != nullptr );
 	StartNewElement();
@@ -109,7 +109,7 @@ void StreamedSerializer<StreamT, formatting>::ArraySerializer::AddString( const 
 }
 
 template<class StreamT, SerializationFormatting formatting>
-void StreamedSerializer<StreamT, formatting>::ArraySerializer::AddBool( const bool val ) noexcept
+void StreamedSerializer<StreamT, formatting>::ArraySerializer::AddBool( const bool val )
 {
 	PJ_ASSERT( stream_ != nullptr );
 	StartNewElement();
@@ -141,7 +141,7 @@ StreamedSerializer<StreamT, formatting>::ArraySerializer::AddNumber( const T num
 }
 
 template<class StreamT, SerializationFormatting formatting>
-void StreamedSerializer<StreamT, formatting>::ArraySerializer::AddNumberInternal( const double number ) noexcept
+void StreamedSerializer<StreamT, formatting>::ArraySerializer::AddNumberInternal( const double number )
 {
 	PJ_ASSERT( stream_ != nullptr );
 	StartNewElement();
@@ -152,7 +152,7 @@ void StreamedSerializer<StreamT, formatting>::ArraySerializer::AddNumberInternal
 }
 
 template<class StreamT, SerializationFormatting formatting>
-void StreamedSerializer<StreamT, formatting>::ArraySerializer::AddNumberInternal( const int64_t number ) noexcept
+void StreamedSerializer<StreamT, formatting>::ArraySerializer::AddNumberInternal( const int64_t number )
 {
 	PJ_ASSERT( stream_ != nullptr );
 	StartNewElement();
@@ -163,7 +163,7 @@ void StreamedSerializer<StreamT, formatting>::ArraySerializer::AddNumberInternal
 }
 
 template<class StreamT, SerializationFormatting formatting>
-void StreamedSerializer<StreamT, formatting>::ArraySerializer::AddNumberInternal( const uint64_t number ) noexcept
+void StreamedSerializer<StreamT, formatting>::ArraySerializer::AddNumberInternal( const uint64_t number )
 {
 	PJ_ASSERT( stream_ != nullptr );
 	StartNewElement();
@@ -203,7 +203,7 @@ void StreamedSerializer<StreamT, formatting>::ArraySerializer::PrintIndents()
 // ObjectSerializer
 
 template<class StreamT, SerializationFormatting formatting>
-StreamedSerializer<StreamT, formatting>::ObjectSerializer::ObjectSerializer( StreamT& stream, const size_t parent_indent ) noexcept
+StreamedSerializer<StreamT, formatting>::ObjectSerializer::ObjectSerializer( StreamT& stream, const size_t parent_indent )
 	: stream_( &stream )
 	, indent_( parent_indent )
 {
@@ -246,7 +246,7 @@ StreamedSerializer<StreamT, formatting>::ObjectSerializer::~ObjectSerializer()
 }
 
 template<class StreamT, SerializationFormatting formatting>
-void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddNull( const StringType& key ) noexcept
+void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddNull( const StringType& key )
 {
 	PJ_ASSERT( stream_ != nullptr );
 	WriteKey( key );
@@ -255,7 +255,7 @@ void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddNull( const S
 
 template<class StreamT, SerializationFormatting formatting>
 typename StreamedSerializer<StreamT, formatting>::ObjectSerializer
-StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddObject( const StringType& key ) noexcept
+StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddObject( const StringType& key )
 {
 	PJ_ASSERT( stream_ != nullptr );
 	WriteKey( key );
@@ -266,7 +266,7 @@ StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddObject( const Stri
 
 template<class StreamT, SerializationFormatting formatting>
 typename StreamedSerializer<StreamT, formatting>::ArraySerializer
-StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddArray( const StringType& key ) noexcept
+StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddArray( const StringType& key )
 {
 	PJ_ASSERT( stream_ != nullptr );
 	WriteKey( key );
@@ -276,7 +276,7 @@ StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddArray( const Strin
 }
 
 template<class StreamT, SerializationFormatting formatting>
-void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddString( const StringType& key, const StringType& string ) noexcept
+void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddString( const StringType& key, const StringType& string )
 {
 	PJ_ASSERT( stream_ != nullptr );
 	WriteKey(key);
@@ -284,7 +284,7 @@ void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddString( const
 }
 
 template<class StreamT, SerializationFormatting formatting>
-void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddBool( const StringType& key, const bool val ) noexcept
+void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddBool( const StringType& key, const bool val )
 {
 	PJ_ASSERT( stream_ != nullptr );
 	WriteKey(key);
@@ -316,7 +316,7 @@ StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddNumber( const Stri
 }
 
 template<class StreamT, SerializationFormatting formatting>
-void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddNumberInternal( const StringType& key, const double number ) noexcept
+void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddNumberInternal( const StringType& key, const double number )
 {
 	PJ_ASSERT( stream_ != nullptr );
 	WriteKey(key);
@@ -327,7 +327,7 @@ void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddNumberInterna
 }
 
 template<class StreamT, SerializationFormatting formatting>
-void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddNumberInternal( const StringType& key, const int64_t number ) noexcept
+void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddNumberInternal( const StringType& key, const int64_t number )
 {
 	PJ_ASSERT( stream_ != nullptr );
 	WriteKey(key);
@@ -338,7 +338,7 @@ void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddNumberInterna
 }
 
 template<class StreamT, SerializationFormatting formatting>
-void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddNumberInternal( const StringType& key, const uint64_t number ) noexcept
+void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddNumberInternal( const StringType& key, const uint64_t number )
 {
 	PJ_ASSERT( stream_ != nullptr );
 	WriteKey(key);
@@ -349,7 +349,7 @@ void StreamedSerializer<StreamT, formatting>::ObjectSerializer::AddNumberInterna
 }
 
 template<class StreamT, SerializationFormatting formatting>
-void StreamedSerializer<StreamT, formatting>::ObjectSerializer::WriteKey( const StringType& key ) noexcept
+void StreamedSerializer<StreamT, formatting>::ObjectSerializer::WriteKey( const StringType& key )
 {
 	StartNewElement();
 	SerializeString( *stream_, key );

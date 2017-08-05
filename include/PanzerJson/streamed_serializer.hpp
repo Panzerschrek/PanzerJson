@@ -11,7 +11,7 @@ enum class SerializationFormatting
 };
 
 // Serializer, that generate json structure "on-fly".
-// Uses stl-like streams.
+// Input sream class must supports operator<<(const char*).
 
 // Usage:
 // Create object with stream. Call, call "AddObject" or "AddArray" method and
@@ -61,11 +61,11 @@ public:
 		ArraySerializer( ArraySerializer&& other ) noexcept;
 		~ArraySerializer();
 
-		void AddNull() noexcept;
-		ObjectSerializer AddObject() noexcept;
-		ArraySerializer AddArray() noexcept;
-		void AddString( const StringType& string ) noexcept;
-		void AddBool( bool val ) noexcept;
+		void AddNull();
+		ObjectSerializer AddObject();
+		ArraySerializer AddArray();
+		void AddString( const StringType& string );
+		void AddBool( bool val );
 
 		template<class T>
 		typename std::enable_if< std::is_integral<T>::value && std::is_signed<T>::value, void >::type
@@ -80,15 +80,15 @@ public:
 		AddNumber( T number );
 
 	private:
-		void AddNumberInternal(   double number ) noexcept;
-		void AddNumberInternal(  int64_t number ) noexcept;
-		void AddNumberInternal( uint64_t number ) noexcept;
+		void AddNumberInternal(   double number );
+		void AddNumberInternal(  int64_t number );
+		void AddNumberInternal( uint64_t number );
 
 		void StartNewElement( bool new_element_is_composite= false );
 		void PrintIndents();
 
 	private:
-		explicit ArraySerializer( StreamT& stream, size_t parent_indent ) noexcept;
+		explicit ArraySerializer( StreamT& stream, size_t parent_indent );
 		friend class StreamedSerializer;
 		friend class ObjectSerializer;
 
@@ -107,11 +107,11 @@ public:
 		ObjectSerializer( ObjectSerializer&& other ) noexcept;
 		~ObjectSerializer();
 
-		void AddNull( const StringType& key ) noexcept;
-		ObjectSerializer AddObject( const StringType& key ) noexcept;
-		ArraySerializer AddArray( const StringType& key ) noexcept;
-		void AddString( const StringType& key, const StringType& string ) noexcept;
-		void AddBool( const StringType& key, bool val ) noexcept;
+		void AddNull( const StringType& key );
+		ObjectSerializer AddObject( const StringType& key );
+		ArraySerializer AddArray( const StringType& key );
+		void AddString( const StringType& key, const StringType& string );
+		void AddBool( const StringType& key, bool val );
 
 		template<class T>
 		typename std::enable_if< std::is_integral<T>::value && std::is_signed<T>::value, void >::type
@@ -126,16 +126,16 @@ public:
 		AddNumber( const StringType& key, T number );
 
 	private:
-		void AddNumberInternal( const StringType& key,   double number ) noexcept;
-		void AddNumberInternal( const StringType& key,  int64_t number ) noexcept;
-		void AddNumberInternal( const StringType& key, uint64_t number ) noexcept;
+		void AddNumberInternal( const StringType& key,   double number );
+		void AddNumberInternal( const StringType& key,  int64_t number );
+		void AddNumberInternal( const StringType& key, uint64_t number );
 
-		void WriteKey( const StringType& key ) noexcept;
+		void WriteKey( const StringType& key );
 		void StartNewElement();
 		void PrintIndents();
 
 	private:
-		explicit ObjectSerializer( StreamT& stream, size_t parent_indent ) noexcept;
+		explicit ObjectSerializer( StreamT& stream, size_t parent_indent );
 		friend class StreamedSerializer;
 		friend class ArraySerializer;
 
@@ -147,14 +147,14 @@ public:
 
 public:
 	// Takes reference to stream. Serializer must live longer, than stream.
-	explicit StreamedSerializer( StreamT& stream ) noexcept;
+	explicit StreamedSerializer( StreamT& stream );
 
 	StreamedSerializer( const StreamedSerializer& )= delete;
 	StreamedSerializer& operator=(const StreamedSerializer& )= delete;
 	StreamedSerializer( StreamedSerializer&& other )= default;
 
-	ObjectSerializer AddObject() noexcept;
-	ArraySerializer AddArray() noexcept;
+	ObjectSerializer AddObject();
+	ArraySerializer AddArray();
 
 private:
 	StreamT& stream_;
