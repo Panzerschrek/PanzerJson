@@ -4,9 +4,14 @@
 namespace PanzerJson
 {
 
+enum class SerializationFormatting
+{
+	Compact,
+	TabIndents,
+};
+
 // Serializer, that generate json structure "on-fly".
 // Uses stl-like streams.
-// Output is minified and is not human-readable.
 
 // Usage:
 // Create object with stream. Call, call "AddObject" or "AddArray" method and
@@ -38,7 +43,9 @@ namespace PanzerJson
 	}
 */
 
-template<class StreamT>
+template<
+	class StreamT,
+	SerializationFormatting formatting= SerializationFormatting::Compact>
 class StreamedSerializer final
 {
 public:
@@ -77,14 +84,18 @@ public:
 		void AddNumberInternal(  int64_t number ) noexcept;
 		void AddNumberInternal( uint64_t number ) noexcept;
 
+		void StartNewElement( bool new_element_is_composite= false );
+		void PrintIndents();
+
 	private:
-		explicit ArraySerializer( StreamT& stream ) noexcept;
+		explicit ArraySerializer( StreamT& stream, size_t parent_indent ) noexcept;
 		friend class StreamedSerializer;
 		friend class ObjectSerializer;
 
 	private:
 		StreamT* stream_; // null means moved
 		size_t element_count_= 0u;
+		size_t indent_;
 	};
 
 	class ObjectSerializer final
@@ -120,15 +131,18 @@ public:
 		void AddNumberInternal( const StringType& key, uint64_t number ) noexcept;
 
 		void WriteKey( const StringType& key ) noexcept;
+		void StartNewElement();
+		void PrintIndents();
 
 	private:
-		explicit ObjectSerializer( StreamT& stream ) noexcept;
+		explicit ObjectSerializer( StreamT& stream, size_t parent_indent ) noexcept;
 		friend class StreamedSerializer;
 		friend class ArraySerializer;
 
 	private:
 		StreamT* stream_; // null means moved
 		size_t element_count_= 0u;
+		size_t indent_;
 	};
 
 public:
