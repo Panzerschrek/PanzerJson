@@ -1,4 +1,4 @@
-#include "../src/serializers_common.hpp"
+#include "../../src/serializers_common.hpp"
 
 namespace PanzerJson
 {
