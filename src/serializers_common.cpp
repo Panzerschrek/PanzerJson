@@ -10,12 +10,12 @@ void GenDoubleValueString( const double val, NumberStringStorage& out_str )
 
 void GenIntValueString ( const int64_t  val, NumberStringStorage& out_str )
 {
-	std::snprintf( out_str.data(), out_str.size(), "%lld", val );
+	std::snprintf( out_str.data(), out_str.size(), "%ld", val );
 }
 
 void GenUintValueString( const uint64_t val, NumberStringStorage& out_str )
 {
-	std::snprintf( out_str.data(), out_str.size(), "%llu", val );
+	std::snprintf( out_str.data(), out_str.size(), "%lu", val );
 }
 
 } // namespace PanzerJson

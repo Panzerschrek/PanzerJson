@@ -308,7 +308,7 @@ const ValueBase* Parser::Parse_r()
 			{
 				while( cur_ < end_ && *cur_ >= '0' && *cur_ <= '9' )
 				{
-					number_digits_.push_back( *cur_ - '0' );
+					number_digits_.push_back( static_cast<unsigned char>( *cur_ - '0' ) );
 					++cur_;
 				}
 			};
